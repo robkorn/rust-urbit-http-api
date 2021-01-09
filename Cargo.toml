@@ -3,12 +3,16 @@ name = "urbit-http-api"
 version = "0.1.0"
 authors = ["Robert Kornacki <11645932+robkorn@users.noreply.github.com>"]
 edition = "2018"
+description = "Wraps the Urbit ship http api exposing it as an easy-to-use Rust crate."
+repository = "https://github.com/robkorn/rust-urbit-http-api"
+license = "MIT"
+keywords = ["http", "urbit", "webhook"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-eventsource-threaded    = {version = "0.1.0", git="https://github.com/robkorn/eventsource-threaded", branch= "main"}
-thiserror               = "1.0.22"
+eventsource-threaded    = "0.1.0"
+thiserror               = "1.0.23"
 json                    = "0.12.4"
-rand                    = "0.7.3"
+rand                    = "0.8.1"
 reqwest                 = {version = "0.10.9", features= ["blocking", "json"]}
