@@ -10,7 +10,7 @@ use reqwest::Url;
 use std::time::SystemTime;
 
 // A Channel which is used to interact with a ship
-// #[derive(Clone)]
+#[derive(Debug)]
 pub struct Channel {
     /// `ShipInterface` this channel is created from
     pub ship_interface: ShipInterface,
