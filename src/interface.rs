@@ -60,7 +60,7 @@ impl ShipInterface {
 
     /// Create a `Channel` using this `ShipInterface`
     pub fn create_channel(&mut self) -> Result<Channel> {
-        Channel::new(self)
+        Channel::new(self.clone())
     }
 
     // Send a put request using the `ShipInterface`

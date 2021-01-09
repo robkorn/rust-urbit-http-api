@@ -11,9 +11,9 @@ use std::time::SystemTime;
 
 // A Channel which is used to interact with a ship
 // #[derive(Clone)]
-pub struct Channel<'a> {
+pub struct Channel {
     /// `ShipInterface` this channel is created from
-    pub ship_interface: &'a ShipInterface,
+    pub ship_interface: ShipInterface,
     /// The uid of the channel
     pub uid: String,
     /// The url of the channel
@@ -28,9 +28,9 @@ pub struct Channel<'a> {
     pub message_id_count: u64,
 }
 
-impl<'a> Channel<'a> {
+impl Channel {
     /// Create a new channel
-    pub fn new(ship_interface: &mut ShipInterface) -> Result<Channel> {
+    pub fn new(ship_interface: ShipInterface) -> Result<Channel> {
         let mut rng = rand::thread_rng();
         // Defining the uid as UNIX time, or random if error
         let uid = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
