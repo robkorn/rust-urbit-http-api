@@ -59,7 +59,7 @@ impl ShipInterface {
     }
 
     /// Create a `Channel` using this `ShipInterface`
-    pub fn create_channel(&mut self) -> Result<Channel> {
+    pub fn create_channel(&self) -> Result<Channel> {
         Channel::new(self.clone())
     }
 
@@ -91,7 +91,7 @@ mod tests {
     #[test]
     // Verify that we can create a channel
     fn can_create_channel() {
-        let mut ship_interface =
+        let ship_interface =
             ShipInterface::new("http://0.0.0.0:8080", "lidlut-tabwed-pillex-ridrup").unwrap();
         let channel = ship_interface.create_channel().unwrap();
         channel.delete_channel();
@@ -100,7 +100,7 @@ mod tests {
     #[test]
     // Verify that we can create a channel
     fn can_subscribe() {
-        let mut ship_interface =
+        let ship_interface =
             ShipInterface::new("http://0.0.0.0:8080", "lidlut-tabwed-pillex-ridrup").unwrap();
         let mut channel = ship_interface.create_channel().unwrap();
         channel
@@ -115,7 +115,7 @@ mod tests {
     #[test]
     // Verify that we can make a poke
     fn can_poke() {
-        let mut ship_interface =
+        let ship_interface =
             ShipInterface::new("http://0.0.0.0:8080", "lidlut-tabwed-pillex-ridrup").unwrap();
         let mut channel = ship_interface.create_channel().unwrap();
         let poke_res = channel
