@@ -76,8 +76,9 @@ impl ShipInterface {
         Ok(resp.send()?)
     }
 
-    pub fn scry(&self, app: &str, path: &str) -> Result<Response> {
-        let scry_url = format!("{}/~/scry/{}{}.json", self.url, app, path);
+    /// Sends a scry to the ship
+    pub fn scry(&self, app: &str, path: &str, mark: &str) -> Result<Response> {
+        let scry_url = format!("{}/~/scry/{}{}.{}", self.url, app, path, mark);
         println!("{}", scry_url);
         let resp = self
             .req_client
@@ -88,6 +89,7 @@ impl ShipInterface {
         Ok(resp.send()?)
     }
 
+    /// Run a thread via spider
     pub fn spider(
         &self,
         input_mark: &str,
@@ -165,7 +167,8 @@ mod tests {
     fn can_scry() {
         let mut ship_interface =
             ShipInterface::new("http://0.0.0.0:8080", "lidlut-tabwed-pillex-ridrup").unwrap();
-        let scry_res = ship_interface.scry("graph-store", "/keys").unwrap();
+        let scry_res = ship_interface.scry("graph-store", "/keys", "json").unwrap();
+
         assert!(scry_res.status().as_u16() == 200);
     }
 
