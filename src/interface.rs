@@ -1,6 +1,6 @@
 use crate::channel::Channel;
 use crate::error::{Result, UrbitAPIError};
-use json::JsonValue;
+use json::{JsonValue, object};
 use reqwest::blocking::{Client, Response};
 use reqwest::header::{HeaderValue, COOKIE};
 
@@ -75,6 +75,38 @@ impl ShipInterface {
 
         Ok(resp.send()?)
     }
+
+    pub fn scry(&self, app: &str, path: &str) -> Result<Response> {
+        let scry_url = format!("{}/~/scry/{}{}.json", self.url, app, path);
+        println!("{}", scry_url);
+        let resp = self
+            .req_client
+            .get(&scry_url)
+            .header(COOKIE, self.session_auth.clone())
+            .header("Content-Type", "application/json");
+
+        Ok(resp.send()?)
+    }
+
+    pub fn spider(&self, input_mark: &str, output_mark: &str, thread_name: &str, body: &JsonValue) 
+      -> Result<Response> {
+        let json = body.dump();
+        let spider_url = format!("{}/spider/{}/{}/{}.json",
+                                 self.url,
+                                 input_mark,
+                                 thread_name,
+                                 output_mark);
+
+        let resp = self
+            .req_client
+            .post(&spider_url)
+            .header(COOKIE, self.session_auth.clone())
+            .header("Content-Type", "application/json")
+            .body(json);
+
+        Ok(resp.send()?)
+
+    }
 }
 
 #[cfg(test)]
@@ -124,4 +156,49 @@ mod tests {
         assert!(poke_res.status().as_u16() == 204);
         channel.delete_channel();
     }
+
+    #[test]
+    // Verify we can scry
+    fn can_scry() {
+        let mut ship_interface =
+            ShipInterface::new("http://0.0.0.0:8080", "lidlut-tabwed-pillex-ridrup").unwrap();
+        let scry_res = ship_interface.scry("graph-store", "/keys").unwrap();
+        assert!(scry_res.status().as_u16() == 200);
+    }
+
+    #[test]
+    // Verify we can run threads
+    fn can_spider() {
+        let mut ship_interface =
+            ShipInterface::new("http://0.0.0.0:8080", "lidlut-tabwed-pillex-ridrup").unwrap();
+        let create_req = object! {
+            "create": {
+                "resource": {
+                    "ship": "~zod",
+                    "name": "test",
+                },
+                "title": "Testing creation",
+                "description": "test",
+                "associated": {
+                    "policy": {
+                        "invite": {
+                            "pending": []
+                        }
+                    }
+                },
+                "module": "chat",
+                "mark": "graph-validator-chat"
+            }
+        };
+
+
+
+        let spider_res = ship_interface
+            .spider("graph-view-action", "json", "graph-create", &create_req)
+            .unwrap();
+
+        assert!(spider_res.status().as_u16() == 200);
+    }
+
+
 }
