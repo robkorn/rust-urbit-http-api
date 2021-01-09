@@ -1,6 +1,6 @@
 use crate::channel::Channel;
 use crate::error::{Result, UrbitAPIError};
-use json::{JsonValue, object};
+use json::{object, JsonValue};
 use reqwest::blocking::{Client, Response};
 use reqwest::header::{HeaderValue, COOKIE};
 
@@ -88,14 +88,18 @@ impl ShipInterface {
         Ok(resp.send()?)
     }
 
-    pub fn spider(&self, input_mark: &str, output_mark: &str, thread_name: &str, body: &JsonValue) 
-      -> Result<Response> {
+    pub fn spider(
+        &self,
+        input_mark: &str,
+        output_mark: &str,
+        thread_name: &str,
+        body: &JsonValue,
+    ) -> Result<Response> {
         let json = body.dump();
-        let spider_url = format!("{}/spider/{}/{}/{}.json",
-                                 self.url,
-                                 input_mark,
-                                 thread_name,
-                                 output_mark);
+        let spider_url = format!(
+            "{}/spider/{}/{}/{}.json",
+            self.url, input_mark, thread_name, output_mark
+        );
 
         let resp = self
             .req_client
@@ -105,7 +109,6 @@ impl ShipInterface {
             .body(json);
 
         Ok(resp.send()?)
-
     }
 }
 
@@ -191,14 +194,10 @@ mod tests {
             }
         };
 
-
-
         let spider_res = ship_interface
             .spider("graph-view-action", "json", "graph-create", &create_req)
             .unwrap();
 
         assert!(spider_res.status().as_u16() == 200);
     }
-
-
 }
