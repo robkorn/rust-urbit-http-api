@@ -106,6 +106,9 @@ pub fn unsubscribe(&mut self, app: &str, path: &str) -> Option<bool>;
 
 /// Deletes the channel
 pub fn delete_channel(self);
+
+/// Exposes an interface for interacting with Urbit chats.
+pub fn chat(&mut self) -> Chat;
 ```
 
 ### Subscription
