@@ -1,3 +1,4 @@
+use crate::chat::Chat;
 use crate::error::{Result, UrbitAPIError};
 use crate::interface::ShipInterface;
 use crate::subscription::{CreationID, Subscription};
@@ -75,15 +76,6 @@ impl Channel {
         }
     }
 
-    /// Acquires and returns the current `message_id_count` from the
-    /// `ShipInterface` that this channel was created from while also
-    /// increase said value by 1.
-    pub fn get_and_raise_message_id_count(&mut self) -> u64 {
-        let current_id_count = self.message_id_count;
-        self.message_id_count += 1;
-        current_id_count
-    }
-
     /// Sends a poke over the channel
     pub fn poke(&mut self, app: &str, mark: &str, json: JsonValue) -> Result<Response> {
         let mut body = json::parse(r#"[]"#).unwrap();
@@ -98,6 +90,12 @@ impl Channel {
 
         // Make the put request for the poke
         self.ship_interface.send_put_request(&self.url, &body)
+    }
+
+    /// Create a `Chat` struct which exposes an interface for interacting
+    /// with chats on Urbit
+    pub fn chat(&mut self) -> Chat {
+        Chat { channel: self }
     }
 
     /// Create a new `Subscription` and thus subscribes to events on the
@@ -208,5 +206,14 @@ impl Channel {
         };
         let res = self.ship_interface.send_put_request(&self.url, &json);
         std::mem::drop(self);
+    }
+
+    /// Acquires and returns the current `message_id_count` from the
+    /// `ShipInterface` that this channel was created from while also
+    /// increase said value by 1.
+    fn get_and_raise_message_id_count(&mut self) -> u64 {
+        let current_id_count = self.message_id_count;
+        self.message_id_count += 1;
+        current_id_count
     }
 }

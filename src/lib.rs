@@ -1,4 +1,5 @@
 pub mod channel;
+pub mod chat;
 pub mod error;
 pub mod interface;
 pub mod local_config;

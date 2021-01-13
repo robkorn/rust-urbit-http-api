@@ -11,6 +11,8 @@ pub enum UrbitAPIError {
     FailedToCreateNewChannel,
     #[error("Failed to create a new subscription.")]
     FailedToCreateNewSubscription,
+    #[error("Failed to send a chat message to chat {0}.")]
+    FailedToSendChatMessage(String),
     #[error("{0}")]
     Other(String),
     #[error(transparent)]
