@@ -156,7 +156,7 @@ mod tests {
             ShipInterface::new("http://0.0.0.0:8080", "lidlut-tabwed-pillex-ridrup").unwrap();
         let mut channel = ship_interface.create_channel().unwrap();
         let poke_res = channel
-            .poke("hood", "helm-hi", "A poke has been made")
+            .poke("hood", "helm-hi", "A poke has been made".into())
             .unwrap();
         assert!(poke_res.status().as_u16() == 204);
         channel.delete_channel();

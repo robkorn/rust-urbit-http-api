@@ -22,9 +22,9 @@ A `Subscription` is created by a `Channel` which is created by a `ShipInterface`
 
 ### ShipInterface
 
-The `ShipInterface` exposes two primary methods that will be useful when creating apps.
+The `ShipInterface` exposes a few useful methods that will be useful when creating apps.
 
-In short these allow you to create a new `ShipInterface` (thereby authorizing yourself with the ship), and create a new `Channel`.
+The more commonly used methods below these allow you to create a new `ShipInterface` (thereby authorizing yourself with the ship), and create a new `Channel`.
 
 ```rust
 /// Logs into the given ship and creates a new `ShipInterface`.
@@ -34,7 +34,17 @@ In short these allow you to create a new `ShipInterface` (thereby authorizing yo
 pub fn new(ship_url: &str, ship_code: &str) -> Result<ShipInterface>;
 
 /// Create a `Channel` using this `ShipInterface`
-pub fn create_channel(&self) -> Result<Channel>;
+pub fn create_channel(&mut self) -> Result<Channel>;
+```
+
+You also have the ability to scry and run threads via spider.
+
+```rust
+/// Send a scry using the `ShipInterface`
+pub fn scry(&self, app: &str, path: &str) -> Result<Response>;
+
+/// Run a thread via spider using the `ShipInterface`
+pub fn spider(&self, input_mark: &str, output_mark: &str, thread_name: &str, body: &JsonValue) -> Result<Response>;
 ```
 
 ### Channel
@@ -45,9 +55,9 @@ It is instructive to look at the definition of the `Channel` struct to understan
 
 ```rust
 // A Channel which is used to interact with a ship
-pub struct Channel {
+pub struct Channel<'a> {
     /// `ShipInterface` this channel is created from
-    pub ship_interface: ShipInterface,
+    pub ship_interface: &'a ShipInterface,
     /// The uid of the channel
     pub uid: String,
     /// The url of the channel
@@ -76,7 +86,7 @@ The following are the useful methods exposed by a `Channel`:
 
 ```rust
 /// Sends a poke over the channel
-pub fn poke(&mut self, app: &str, mark: &str, json: &str) -> Result<Response>;
+pub fn poke(&mut self, app: &str, mark: &str, json: JsonValue) -> Result<Response>;
 
 /// Create a new `Subscription` and thus subscribes to events on the ship with the provided app/path.
 pub fn create_new_subscription(&mut self, app: &str, path: &str) -> Result<CreationID>;
@@ -130,7 +140,7 @@ fn main() {
     let mut channel = ship_interface.create_channel().unwrap();
 
     // Issue a poke over the channel
-    let poke_res = channel.poke("hood", "helm-hi", "This is a poke");
+    let poke_res = channel.poke("hood", "helm-hi", "This is a poke".into());
 
     // Cleanup/delete the `Channel` once finished
     channel.delete_channel();

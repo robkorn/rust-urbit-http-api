@@ -2,7 +2,7 @@ use crate::error::{Result, UrbitAPIError};
 use crate::interface::ShipInterface;
 use crate::subscription::{CreationID, Subscription};
 use eventsource_threaded::{EventSource, ReceiverSource};
-use json::object;
+use json::{object, JsonValue};
 use rand::Rng;
 use reqwest::blocking::Response;
 use reqwest::header::HeaderMap;
@@ -85,7 +85,7 @@ impl Channel {
     }
 
     /// Sends a poke over the channel
-    pub fn poke(&mut self, app: &str, mark: &str, json: &str) -> Result<Response> {
+    pub fn poke(&mut self, app: &str, mark: &str, json: JsonValue) -> Result<Response> {
         let mut body = json::parse(r#"[]"#).unwrap();
         body[0] = object! {
                 "id": self.get_and_raise_message_id_count(),
