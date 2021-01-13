@@ -1,6 +1,6 @@
 [package]
 name = "urbit-http-api"
-version = "0.1.3"
+version = "0.1.4"
 authors = ["Robert Kornacki <11645932+robkorn@users.noreply.github.com>"]
 edition = "2018"
 description = "Wraps the Urbit ship http api exposing it as an easy-to-use Rust crate."
