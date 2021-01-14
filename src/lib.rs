@@ -1,6 +1,7 @@
 pub mod channel;
 pub mod chat;
 pub mod error;
+pub mod helper;
 pub mod interface;
 pub mod local_config;
 pub mod subscription;
