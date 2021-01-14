@@ -86,7 +86,7 @@ The following are the useful methods exposed by a `Channel`:
 
 ```rust
 /// Sends a poke over the channel
-pub fn poke(&mut self, app: &str, mark: &str, json: JsonValue) -> Result<Response>;
+pub fn poke(&mut self, app: &str, mark: &str, json: &JsonValue) -> Result<Response>;
 
 /// Create a new `Subscription` and thus subscribes to events on the ship with the provided app/path.
 pub fn create_new_subscription(&mut self, app: &str, path: &str) -> Result<CreationID>;
@@ -143,7 +143,7 @@ fn main() {
     let mut channel = ship_interface.create_channel().unwrap();
 
     // Issue a poke over the channel
-    let poke_res = channel.poke("hood", "helm-hi", "This is a poke".into());
+    let poke_res = channel.poke("hood", "helm-hi", &"This is a poke".into());
 
     // Cleanup/delete the `Channel` once finished
     channel.delete_channel();

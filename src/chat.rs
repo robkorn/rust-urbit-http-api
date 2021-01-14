@@ -1,6 +1,6 @@
 use crate::helper::get_current_da_time;
 use crate::{Channel, Result, UrbitAPIError};
-use json::object;
+use json::{object, JsonValue};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub struct Chat<'a> {
@@ -8,7 +8,12 @@ pub struct Chat<'a> {
 }
 
 impl<'a> Chat<'a> {
-    pub fn send_message(&mut self, chat_ship: &str, chat_name: &str, message: &str) -> Result<()> {
+    pub fn send_message(
+        &mut self,
+        chat_ship: &str,
+        chat_name: &str,
+        message: &JsonValue,
+    ) -> Result<()> {
         // Add the ~ to the ship name to be used within the poke json
         let ship = format!("~{}", self.channel.ship_interface.ship_name);
 
@@ -31,7 +36,7 @@ impl<'a> Chat<'a> {
                             "index": index.clone(),
                             "time-sent": unix_time,
                             "contents": [{
-                                "text": message
+                                "text": message.clone()
                             }],
                             "hash": null,
                             "signatures": []
@@ -49,7 +54,7 @@ impl<'a> Chat<'a> {
             }
         };
 
-        let resp = (&mut self.channel).poke("graph-push-hook", "graph-update", poke_json)?;
+        let resp = (&mut self.channel).poke("graph-push-hook", "graph-update", &poke_json)?;
 
         if resp.status().as_u16() == 204 {
             Ok(())

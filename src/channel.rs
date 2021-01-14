@@ -77,7 +77,7 @@ impl Channel {
     }
 
     /// Sends a poke over the channel
-    pub fn poke(&mut self, app: &str, mark: &str, json: JsonValue) -> Result<Response> {
+    pub fn poke(&mut self, app: &str, mark: &str, json: &JsonValue) -> Result<Response> {
         let mut body = json::parse(r#"[]"#).unwrap();
         body[0] = object! {
                 "id": self.get_and_raise_message_id_count(),
@@ -85,7 +85,7 @@ impl Channel {
                 "ship": self.ship_interface.ship_name.clone(),
                 "app": app,
                 "mark": mark,
-                "json": json,
+                "json": json.clone(),
         };
 
         // Make the put request for the poke
