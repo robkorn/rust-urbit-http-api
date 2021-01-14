@@ -1,3 +1,4 @@
+use crate::helper::get_current_da_time;
 use crate::{Channel, Result, UrbitAPIError};
 use json::object;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -7,7 +8,7 @@ pub struct Chat<'a> {
 }
 
 impl<'a> Chat<'a> {
-    pub fn send_message(&mut self, chat_name: &str, message: &str) -> Result<()> {
+    pub fn send_message(&mut self, chat_ship: &str, chat_name: &str, message: &str) -> Result<()> {
         // Add the ~ to the ship name to be used within the poke json
         let ship = format!("~{}", self.channel.ship_interface.ship_name);
 
@@ -19,7 +20,7 @@ impl<'a> Chat<'a> {
 
         // The index. For chat this is the `now` in Urbit as an atom.
         // Need to implement properly with `now` still.
-        let index = format!("/{}", unix_time);
+        let index = format!("/{}", get_current_da_time());
 
         // Creating the json by adding the index dynamically for the key
         // for the inner part of the json
@@ -41,7 +42,7 @@ impl<'a> Chat<'a> {
         let poke_json = object! {
             "add-nodes": {
                 "resource": {
-                    "ship": ship.clone(),
+                    "ship": chat_ship,
                     "name": chat_name
                 },
             "nodes": nodes_json
