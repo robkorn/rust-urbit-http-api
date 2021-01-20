@@ -52,6 +52,22 @@ impl Message {
         self.add_to_message(formatted)
     }
 
+    /// Appends a code block to the end of the current message.
+    pub fn add_code(&self, code: &str) -> Message {
+        let formatted = object! {
+            "code": code
+        };
+        self.add_to_message(formatted)
+    }
+
+    /// Appends a reference to another @p/ship to the end of the current message.
+    pub fn add_reference(&self, referenced_ship: &str) -> Message {
+        let formatted = object! {
+            "reference": referenced_ship
+        };
+        self.add_to_message(formatted)
+    }
+
     /// Internal method to append JsonValue to message
     fn add_to_message(&self, json: JsonValue) -> Message {
         let mut contents = self.contents.clone();
