@@ -25,7 +25,7 @@ impl<'a> Chat<'a> {
     ) -> Result<()> {
         self.channel
             .graph_store()
-            .post(chat_ship, chat_name, message.contents)
+            .post(chat_ship, chat_name, message.clone().contents)
     }
 }
 
@@ -55,7 +55,7 @@ impl Message {
     /// Internal method to append JsonValue to message
     fn add_to_message(&self, json: JsonValue) -> Message {
         let mut contents = self.contents.clone();
-        contents.append(vec![json]);
+        contents.append(&mut vec![json]);
         Message { contents: contents }
     }
 }
