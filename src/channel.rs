@@ -1,5 +1,6 @@
 use crate::chat::Chat;
 use crate::error::{Result, UrbitAPIError};
+use crate::graphstore::GraphStore;
 use crate::interface::ShipInterface;
 use crate::subscription::{CreationID, Subscription};
 use eventsource_threaded::{EventSource, ReceiverSource};
@@ -10,7 +11,7 @@ use reqwest::header::HeaderMap;
 use reqwest::Url;
 use std::time::SystemTime;
 
-// A Channel which is used to interact with a ship
+/// A Channel which is used to interact with a ship
 #[derive(Debug)]
 pub struct Channel {
     /// `ShipInterface` this channel is created from
@@ -29,6 +30,7 @@ pub struct Channel {
     pub message_id_count: u64,
 }
 
+/// Channel methods for basic functionality
 impl Channel {
     /// Create a new channel
     pub fn new(ship_interface: ShipInterface) -> Result<Channel> {
@@ -90,12 +92,6 @@ impl Channel {
 
         // Make the put request for the poke
         self.ship_interface.send_put_request(&self.url, &body)
-    }
-
-    /// Create a `Chat` struct which exposes an interface for interacting
-    /// with chats on Urbit
-    pub fn chat(&mut self) -> Chat {
-        Chat { channel: self }
     }
 
     /// Create a new `Subscription` and thus subscribes to events on the
@@ -215,5 +211,21 @@ impl Channel {
         let current_id_count = self.message_id_count;
         self.message_id_count += 1;
         current_id_count
+    }
+}
+
+/// `Channel` methods which expose advanced functionality, typically by
+/// producing another struct which is built on top of `Channel`.
+impl Channel {
+    /// Create a `Chat` struct which exposes an interface for interacting
+    /// with chats on Urbit
+    pub fn chat(&mut self) -> Chat {
+        Chat { channel: self }
+    }
+
+    /// Create a `GraphStore` struct which exposes an interface for interacting
+    /// with a ship's Graph Store.
+    pub fn graph_store(&mut self) -> GraphStore {
+        GraphStore { channel: self }
     }
 }
