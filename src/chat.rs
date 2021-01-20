@@ -9,6 +9,7 @@ pub struct Chat<'a> {
 /// A struct that represents a message that is to be sent to an Urbit chat.
 /// `Message` provides methods to build a message in chunks, thereby allowing you
 /// to add content which needs to be parsed, for example links or code.
+#[derive(Debug, Clone)]
 pub struct Message {
     contents: Vec<JsonValue>,
 }
@@ -36,18 +37,25 @@ impl Message {
     }
 
     /// Appends text to the end of the current message.
-    pub fn add_text(&mut self, text: &str) {
-        let formatted_text = object! {
+    pub fn add_text(&self, text: &str) -> Message {
+        let formatted = object! {
             "text": text
         };
-        self.contents.append(vec![formatted_text]);
+        self.add_to_message(formatted)
     }
 
     /// Appends a url to the end of the current message.
-    pub fn add_url(&mut self, url: &str) {
+    pub fn add_url(&self, url: &str) -> Message {
         let formatted = object! {
             "url": url
         };
-        self.contents.append(vec![formatted]);
+        self.add_to_message(formatted)
+    }
+
+    /// Internal method to append JsonValue to message
+    fn add_to_message(&self, json: JsonValue) -> Message {
+        let mut contents = self.contents.clone();
+        contents.append(vec![json]);
+        Message { contents: contents }
     }
 }

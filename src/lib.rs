@@ -8,7 +8,6 @@ pub mod local_config;
 pub mod subscription;
 
 pub use channel::Channel;
-pub use chat::{Chat, Message};
 pub use error::{Result, UrbitAPIError};
 pub use graphstore::GraphStore;
 pub use helper::get_current_da_time;
