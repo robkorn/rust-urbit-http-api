@@ -9,8 +9,10 @@ This crate currently enables devs to:
 1. Authorize oneself and open a channel with the ship.
 2. Subscribe to any app/path so that one can read the events currently taking place inside of the ship.
 3. Issue `Poke`s to apps.
+4. Send messages to an Urbit chat.
+5. Issue generic Graph Store pokes.
 
-## Design
+## Basic Design
 
 There are 3 main structs that this library exposes for interacting with an Urbit ship:
 
@@ -107,8 +109,12 @@ pub fn unsubscribe(&mut self, app: &str, path: &str) -> Option<bool>;
 /// Deletes the channel
 pub fn delete_channel(self);
 
+/// Exposes an interface for interacting with a ship's Graph Store directly.
+pub fn graph_store(&mut self) -> GraphStore;
+
 /// Exposes an interface for interacting with Urbit chats.
 pub fn chat(&mut self) -> Chat;
+
 ```
 
 ### Subscription
