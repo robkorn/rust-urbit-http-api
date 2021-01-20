@@ -1,6 +1,6 @@
 use crate::channel::Channel;
 use crate::error::{Result, UrbitAPIError};
-use json::{object, JsonValue};
+use json::JsonValue;
 use reqwest::blocking::{Client, Response};
 use reqwest::header::{HeaderValue, COOKIE};
 

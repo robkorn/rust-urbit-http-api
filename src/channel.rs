@@ -158,7 +158,7 @@ impl Channel {
                                 "event-id": eid,
                             };
                             self.message_id_count += 1;
-                            let ack_res = self.ship_interface.send_put_request(&self.url, &json);
+                            let _ack_res = self.ship_interface.send_put_request(&self.url, &json);
                             break;
                         }
                     }
@@ -200,7 +200,7 @@ impl Channel {
             "id": self.message_id_count,
             "action": "delete",
         };
-        let res = self.ship_interface.send_put_request(&self.url, &json);
+        let _res = self.ship_interface.send_put_request(&self.url, &json);
         std::mem::drop(self);
     }
 

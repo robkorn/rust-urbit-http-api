@@ -1,4 +1,3 @@
-use crate::error::Result;
 use crate::ShipInterface;
 use std::fs::File;
 use std::io::prelude::*;
