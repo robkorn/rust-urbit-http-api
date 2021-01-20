@@ -209,6 +209,40 @@ fn main() {
 }
 ```
 
+### Urbit Chat Messaging Example
+
+This example displays how to connect to a ship and send a message to an Urbit chat.
+
+```rust
+// Import the `ShipInterface` struct
+use urbit_http_api::ShipInterface;
+
+fn main() {
+    // Create a new `ShipInterface` for a local ~zod ship
+    let mut ship_interface =
+        ShipInterface::new("http://0.0.0.0:8080", "lidlut-tabwed-pillex-ridrup").unwrap();
+    // Create a `Channel`
+    let mut channel = ship_interface.create_channel().unwrap();
+
+    // Create a `Message` which is formatted properly for an Urbit chat
+    let message = Message::new()
+        // Add text to your message
+        .add_text("Checkout this cool article by ~wicdev-wisryt:")
+        // Add a URL link to your message after the previous text (which gets automatically added on a new line)
+        .add_url("https://urbit.org/blog/io-in-hoon/")
+        // Add an image URL to your message after the previous url (which gets automatically added on a new line as a rendered image)
+        .add_url("https://media.urbit.org/site/posts/essays/zion-canyon-1.jpg");
+    // Send the message to a chat hosted by ~zod named "test-93".
+    // Note the connected ship must already have joined the chat in order to send a message to the chat.
+    let _mess_res = channel
+        .chat()
+        .send_message("~zod", "test-93", &message);
+
+    // Cleanup/delete the `Channel` once finished
+    channel.delete_channel();
+}
+```
+
 ---
 
 This library was created by ~mocrux-nomdep([Robert Kornacki](https://github.com/robkorn)).
