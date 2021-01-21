@@ -215,7 +215,7 @@ This example displays how to connect to a ship and send a message to an Urbit ch
 
 ```rust
 // Import the `ShipInterface` struct
-use urbit_http_api::ShipInterface;
+use urbit_http_api::{ShipInterface, chat::Message};
 
 fn main() {
     // Create a new `ShipInterface` for a local ~zod ship
