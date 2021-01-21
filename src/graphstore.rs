@@ -9,6 +9,58 @@ pub struct GraphStore<'a> {
 }
 
 impl<'a> GraphStore<'a> {
+    /// Issue a `post` to Graph Store.
+    /// On success returns the index of the newly added node.
+    pub fn post(
+        &mut self,
+        resource_ship: &str,
+        resource_name: &str,
+        contents: Vec<JsonValue>,
+    ) -> Result<String> {
+        // The index. For chat the default is current time in `@da` encoding with a `/` in front.
+        let index = format!("/{}", get_current_da_time());
+
+        self.post_custom_index(resource_ship, resource_name, contents, &index)
+    }
+
+    /// Issue a `post` to Graph Store using a custom index.
+    /// On success returns the index of the newly added node.
+    pub fn post_custom_index(
+        &mut self,
+        resource_ship: &str,
+        resource_name: &str,
+        contents: Vec<JsonValue>,
+        index: &str,
+    ) -> Result<String> {
+        // Add the ~ to the ship name to be used within the post as author
+        let ship = format!("~{}", self.channel.ship_interface.ship_name);
+
+        // Get the current Unix Time
+        let unix_time = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_millis() as u64;
+
+        // Creating the json by adding the index dynamically for the key
+        // for the inner part of the json
+        let mut nodes_json = object!();
+        nodes_json[index.clone()] = object! {
+                        "post": {
+                            "author": ship.clone(),
+                            "index": index.clone(),
+                            "time-sent": unix_time,
+                            "contents": contents,
+                            "hash": null,
+                            "signatures": []
+                        },
+                        "children": null
+        };
+
+        // Using `?` to ensure adding the node was a success, else return error.
+        self.add_nodes(resource_ship, resource_name, nodes_json)?;
+        Ok(index.to_string())
+    }
+
     /// Add nodes to Graph Store
     pub fn add_nodes(
         &mut self,
@@ -35,43 +87,5 @@ impl<'a> GraphStore<'a> {
                 resource_name.to_string(),
             ));
         }
-    }
-
-    /// Issue a `post` to Graph Store
-    pub fn post(
-        &mut self,
-        resource_ship: &str,
-        resource_name: &str,
-        contents: Vec<JsonValue>,
-    ) -> Result<()> {
-        // Add the ~ to the ship name to be used within the post as author
-        let ship = format!("~{}", self.channel.ship_interface.ship_name);
-
-        // Get the current Unix Time
-        let unix_time = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_millis() as u64;
-
-        // The index. For chat this is the `now` in Urbit as an atom.
-        // Need to implement properly with `now` still.
-        let index = format!("/{}", get_current_da_time());
-
-        // Creating the json by adding the index dynamically for the key
-        // for the inner part of the json
-        let mut nodes_json = object!();
-        nodes_json[index.clone()] = object! {
-                        "post": {
-                            "author": ship.clone(),
-                            "index": index.clone(),
-                            "time-sent": unix_time,
-                            "contents": contents,
-                            "hash": null,
-                            "signatures": []
-                        },
-                        "children": null
-        };
-
-        self.add_nodes(resource_ship, resource_name, nodes_json)
     }
 }

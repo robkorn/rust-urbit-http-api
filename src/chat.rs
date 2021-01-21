@@ -16,13 +16,15 @@ pub struct Message {
 
 /// Methods for interacting with a Chat
 impl<'a> Chat<'a> {
-    /// Send a message to an Urbit chat
+    /// Send a message to an Urbit chat.
+    /// Returns the index of the node that was added
+    /// to Graph Store.
     pub fn send_message(
         &mut self,
         chat_ship: &str,
         chat_name: &str,
         message: &Message,
-    ) -> Result<()> {
+    ) -> Result<String> {
         self.channel
             .graph_store()
             .post(chat_ship, chat_name, message.clone().contents)
