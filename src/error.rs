@@ -15,6 +15,8 @@ pub enum UrbitAPIError {
     FailedToSendChatMessage(String),
     #[error("Failed to add nodes to Graph Store for resource {0}.")]
     FailedToAddNodesToGraphStore(String),
+    #[error("Failed to remove nodes from Graph Store for resource {0}.")]
+    FailedToRemoveNodesFromGraphStore(String),
     #[error("{0}")]
     Other(String),
     #[error(transparent)]

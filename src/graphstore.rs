@@ -88,4 +88,33 @@ impl<'a> GraphStore<'a> {
             ));
         }
     }
+
+    /// Remove nodes from Graph Store using the provided list of indices
+    pub fn remove_nodes(
+        &mut self,
+        resource_ship: &str,
+        resource_name: &str,
+        indices: Vec<&str>,
+    ) -> Result<()> {
+        let prepped_json = object! {
+            "remove-nodes": {
+                "resource": {
+                    "ship": resource_ship,
+                    "name": resource_name
+                },
+            "indices": indices
+            }
+        };
+        println!("remove nodes: {}", prepped_json.dump());
+
+        let resp = (&mut self.channel).poke("graph-push-hook", "graph-update", &prepped_json)?;
+
+        if resp.status().as_u16() == 204 {
+            Ok(())
+        } else {
+            return Err(UrbitAPIError::FailedToRemoveNodesFromGraphStore(
+                resource_name.to_string(),
+            ));
+        }
+    }
 }
