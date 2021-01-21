@@ -9,6 +9,34 @@ pub struct GraphStore<'a> {
 }
 
 impl<'a> GraphStore<'a> {
+    /// Add nodes to Graph Store
+    pub fn add_nodes(
+        &mut self,
+        resource_ship: &str,
+        resource_name: &str,
+        nodes_json: JsonValue,
+    ) -> Result<()> {
+        let prepped_json = object! {
+            "add-nodes": {
+                "resource": {
+                    "ship": resource_ship,
+                    "name": resource_name
+                },
+            "nodes": nodes_json
+            }
+        };
+
+        let resp = (&mut self.channel).poke("graph-push-hook", "graph-update", &prepped_json)?;
+
+        if resp.status().as_u16() == 204 {
+            Ok(())
+        } else {
+            return Err(UrbitAPIError::FailedToAddNodesToGraphStore(
+                resource_name.to_string(),
+            ));
+        }
+    }
+
     /// Issue a `post` to Graph Store
     pub fn post(
         &mut self,
@@ -43,25 +71,7 @@ impl<'a> GraphStore<'a> {
                         },
                         "children": null
         };
-        // Rest of the json creation
-        let poke_json = object! {
-            "add-nodes": {
-                "resource": {
-                    "ship": resource_ship,
-                    "name": resource_name
-                },
-            "nodes": nodes_json
-            }
-        };
 
-        let resp = (&mut self.channel).poke("graph-push-hook", "graph-update", &poke_json)?;
-
-        if resp.status().as_u16() == 204 {
-            Ok(())
-        } else {
-            return Err(UrbitAPIError::FailedToIssueGraphStorePost(
-                resource_name.to_string(),
-            ));
-        }
+        self.add_nodes(resource_ship, resource_name, nodes_json)
     }
 }

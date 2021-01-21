@@ -13,8 +13,8 @@ pub enum UrbitAPIError {
     FailedToCreateNewSubscription,
     #[error("Failed to send a chat message to chat {0}.")]
     FailedToSendChatMessage(String),
-    #[error("Failed to issue Graph Store post for resource {0}.")]
-    FailedToIssueGraphStorePost(String),
+    #[error("Failed to add nodes to Graph Store for resource {0}.")]
+    FailedToAddNodesToGraphStore(String),
     #[error("{0}")]
     Other(String),
     #[error(transparent)]
