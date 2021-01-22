@@ -17,6 +17,8 @@ pub enum UrbitAPIError {
     FailedToAddNodesToGraphStore(String),
     #[error("Failed to remove nodes from Graph Store for resource {0}.")]
     FailedToRemoveNodesFromGraphStore(String),
+    #[error("Failed to remove graph from Graph Store for resource {0}.")]
+    FailedToRemoveGraphFromGraphStore(String),
     #[error("{0}")]
     Other(String),
     #[error(transparent)]

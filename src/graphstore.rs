@@ -105,7 +105,6 @@ impl<'a> GraphStore<'a> {
             "indices": indices
             }
         };
-        println!("remove nodes: {}", prepped_json.dump());
 
         let resp = (&mut self.channel).poke("graph-push-hook", "graph-update", &prepped_json)?;
 
@@ -113,6 +112,28 @@ impl<'a> GraphStore<'a> {
             Ok(())
         } else {
             return Err(UrbitAPIError::FailedToRemoveNodesFromGraphStore(
+                resource_name.to_string(),
+            ));
+        }
+    }
+
+    /// Remove graph from Graph Store
+    pub fn remove_graph(&mut self, resource_ship: &str, resource_name: &str) -> Result<()> {
+        let prepped_json = object! {
+            "remove-graph": {
+                "resource": {
+                    "ship": resource_ship,
+                    "name": resource_name
+                }
+            }
+        };
+
+        let resp = (&mut self.channel).poke("graph-push-hook", "graph-update", &prepped_json)?;
+
+        if resp.status().as_u16() == 204 {
+            Ok(())
+        } else {
+            return Err(UrbitAPIError::FailedToRemoveGraphFromGraphStore(
                 resource_name.to_string(),
             ));
         }
