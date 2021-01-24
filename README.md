@@ -158,7 +158,7 @@ fn main() {
 
 ### Subscription Example
 
-This example shows how to create, interact with, and delete a `Subscription`. In this scenario we desire to read messages from our `Subscription` for 10 seconds, and then perform cleanup.
+This example shows how to create, interact with, and delete a `Subscription`. In this scenario we desire to read all new updates from Graph Store via our `Subscription` for 10 seconds, and then perform cleanup.
 
 ```rust
 use std::thread;
@@ -171,10 +171,10 @@ fn main() {
         ShipInterface::new("http://0.0.0.0:8080", "lidlut-tabwed-pillex-ridrup").unwrap();
     // Create a `Channel`
     let mut channel = ship_interface.create_channel().unwrap();
-    // Create a `Subscription` for the `chat-view` app with the `/primary` path. This `Subscription`
+    // Create a `Subscription` for the `graph-store` app with the `/updates` path. This `Subscription`
     // is automatically added to the `Channel`'s `subscription_list`.
     channel
-        .create_new_subscription("chat-view", "/primary")
+        .create_new_subscription("graph-store", "/updates")
         .unwrap();
 
     // Create a loop that iterates 10 times
@@ -183,12 +183,12 @@ fn main() {
         // `Subscription`s in the `Channel`'s `subscription_list`.
         channel.parse_event_messages();
 
-        // Find our chat `Subscription`
-        let chat_sub = channel.find_subscription("chat-view", "/primary").unwrap();
+        // Find our graph-store `Subscription`
+        let gs_sub = channel.find_subscription("graph-store", "/updates").unwrap();
 
-        // Pop all of the messages from our `chat_sub` and print them
+        // Pop all of the messages from our `gs_sub` and print them
         loop {
-            let pop_res = chat_sub.pop_message();
+            let pop_res = gs_sub.pop_message();
             if let Some(mess) = &pop_res {
                 println!("Message: {:?}", mess);
             }
@@ -203,7 +203,7 @@ fn main() {
     }
 
     // Once finished, unsubscribe/destroy our `Subscription`
-    channel.unsubscribe("chat-view", "/primary");
+    channel.unsubscribe("graph-store", "/updates");
     // Delete the channel
     channel.delete_channel();
 }
