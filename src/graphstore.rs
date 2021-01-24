@@ -117,6 +117,20 @@ impl<'a> GraphStore<'a> {
         }
     }
 
+    /// Acquire a graph from Graph Store
+    pub fn get_graph(&mut self, resource_ship: &str, resource_name: &str) -> Result<String> {
+        let path = format!("/graph/{}/{}", resource_ship, resource_name);
+        let res = self
+            .channel
+            .ship_interface
+            .scry("graph-store", &path, "json")?;
+
+        if let Ok(body) = res.text() {
+            return Ok(body);
+        }
+        return Err(UrbitAPIError::FailedToGetGraph(resource_name.to_string()));
+    }
+
     /// Remove graph from Graph Store
     pub fn remove_graph(&mut self, resource_ship: &str, resource_name: &str) -> Result<()> {
         let prepped_json = object! {
