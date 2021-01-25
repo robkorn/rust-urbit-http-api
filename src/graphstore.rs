@@ -125,10 +125,30 @@ impl<'a> GraphStore<'a> {
             .ship_interface
             .scry("graph-store", &path, "json")?;
 
-        if let Ok(body) = res.text() {
-            return Ok(body);
+        if res.status().as_u16() == 204 {
+            if let Ok(body) = res.text() {
+                return Ok(body);
+            }
         }
         return Err(UrbitAPIError::FailedToGetGraph(resource_name.to_string()));
+    }
+
+    /// Archive a graph in Graph Store
+    pub fn archive_graph(&mut self, resource_ship: &str, resource_name: &str) -> Result<String> {
+        let path = format!("/archive/{}/{}", resource_ship, resource_name);
+        let res = self
+            .channel
+            .ship_interface
+            .scry("graph-store", &path, "json")?;
+
+        if res.status().as_u16() == 204 {
+            if let Ok(body) = res.text() {
+                return Ok(body);
+            }
+        }
+        return Err(UrbitAPIError::FailedToArchiveGraph(
+            resource_name.to_string(),
+        ));
     }
 
     /// Remove graph from Graph Store
