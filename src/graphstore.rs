@@ -125,7 +125,9 @@ impl<'a> GraphStore<'a> {
             .ship_interface
             .scry("graph-store", &path, "json")?;
 
-        if res.status().as_u16() == 204 {
+        println!("Resp: {}", res.status().as_u16());
+
+        if res.status().as_u16() == 200 {
             if let Ok(body) = res.text() {
                 return Ok(body);
             }
@@ -141,7 +143,7 @@ impl<'a> GraphStore<'a> {
             .ship_interface
             .scry("graph-store", &path, "json")?;
 
-        if res.status().as_u16() == 204 {
+        if res.status().as_u16() == 200 {
             if let Ok(body) = res.text() {
                 return Ok(body);
             }
