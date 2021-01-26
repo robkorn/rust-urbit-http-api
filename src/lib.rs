@@ -1,6 +1,7 @@
 pub mod channel;
 pub mod chat;
 pub mod error;
+pub mod graph;
 pub mod graphstore;
 pub mod helper;
 pub mod interface;
@@ -9,6 +10,7 @@ pub mod subscription;
 
 pub use channel::Channel;
 pub use error::{Result, UrbitAPIError};
+pub use graph::Graph;
 pub use graphstore::GraphStore;
 pub use helper::get_current_da_time;
 pub use interface::ShipInterface;
