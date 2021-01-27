@@ -2,7 +2,10 @@ use crate::error::{Result, UrbitAPIError};
 use json::{object, JsonValue};
 use regex::Regex;
 
-/// Struct which represents a graph in Graph Store.
+/// Struct which represents a graph in Graph Store
+/// as a list of Nodes. Simplistic implementation
+/// may be updated in the future if performance becomes
+/// inadequate in real world use cases.
 #[derive(Clone, Debug)]
 pub struct Graph {
     pub nodes: Vec<Node>,
@@ -23,6 +26,19 @@ impl Graph {
     /// Create a new `Graph`
     pub fn new(nodes: Vec<Node>) -> Graph {
         Graph { nodes: nodes }
+    }
+
+    /// Insert a `Node` into the `Graph`.
+    /// Reads the index of the node and embeds it within
+    /// the correct parent node if it is a child.
+    pub fn insert(&mut self, node: Node) {
+        self.nodes.push(node);
+    }
+
+    /// Attempts to find the parent of a given node within `self`
+    /// with a naive linear search.
+    pub fn find_node_parent(&self, child: &Node) -> Option<&Node> {
+        self.nodes.iter().find(|n| n.is_direct_parent(&child))
     }
 
     /// Convert from graph `JsonValue` to `Graph`
@@ -62,18 +78,6 @@ impl Graph {
         }
 
         Ok(graph)
-    }
-
-    /// Insert a `Node` into the `Graph`.
-    /// Reads the index of the node and embeds it within
-    /// the correct parent node if it is a child.
-    pub fn insert(&mut self, node: Node) {
-        self.nodes.push(node);
-    }
-
-    /// Attempts to find the parent of a given node within `self`.
-    pub fn find_node_parent(&self, child: &Node) -> Option<&Node> {
-        self.nodes.iter().find(|n| n.is_direct_parent(&child))
     }
 
     // Converts to `JsonValue`
