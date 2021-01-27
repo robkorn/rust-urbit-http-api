@@ -27,6 +27,8 @@ pub enum UrbitAPIError {
     FailedToCreateGraphFromJSON,
     #[error("Failed to build a Node struct from supplied JsonValue.")]
     FailedToCreateGraphNodeFromJSON,
+    #[error("Failed to insert a Node struct into a Graph because of the index.")]
+    FailedToInsertGraphNode,
     #[error("{0}")]
     Other(String),
     #[error(transparent)]

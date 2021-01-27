@@ -17,92 +17,72 @@ pub struct Node {
     pub signatures: Vec<String>,
     pub contents: Vec<JsonValue>,
     pub hash: Option<String>,
-    pub children: Vec<Node>,
 }
 
 impl Graph {
-    // Create a new `Graph`
+    /// Create a new `Graph`
     pub fn new(nodes: Vec<Node>) -> Graph {
         Graph { nodes: nodes }
     }
 
-    // Convert from graph `JsonValue` to `Graph`
+    /// Convert from graph `JsonValue` to `Graph`
     pub fn from_json(graph_json: JsonValue) -> Result<Graph> {
-        // List of node tuples
-        let mut node_tuples = vec![];
+        // Create a new empty graph to insert nodes into
+        let mut graph = Graph::new(vec![]);
+        // Create a list of nodes all stripped of child associations
+        let mut childless_nodes = vec![];
         // Get the graph inner json
-        let mut graph_text = format!("{}", graph_json["graph-update"]["add-graph"]["graph"]);
+        let graph_text = format!("{}", graph_json["graph-update"]["add-graph"]["graph"]);
         println!("graph text: {}", graph_text);
 
         // Create regex to capture each node json
-        let re = Regex::new(r#""(\d+)":(.+?children":).+?"#)
+        let re = Regex::new(r#""\d+":(.+?children":).+?"#)
             .map_err(|_| UrbitAPIError::FailedToCreateGraphFromJSON)?;
-        // For each capture group, create a node and add to to the nodes list
+        // For each capture group, create a childless node
         for capture in re.captures_iter(&graph_text) {
-            // Get the index key for the given node
-            let index_key = capture
+            // Get the node json string without it's children
+            let node_string = capture
                 .get(1)
                 .ok_or(UrbitAPIError::FailedToCreateGraphFromJSON)?
                 .as_str()
-                .parse::<u128>()
-                .map_err(|_| UrbitAPIError::FailedToCreateGraphFromJSON)?;
-            let node_string = capture
-                .get(2)
-                .ok_or(UrbitAPIError::FailedToCreateGraphFromJSON)?
-                .as_str();
+                .to_string()
+                + r#"null}"#;
             println!(" ");
-            println!("index key: {}", index_key);
             println!("node string: {}", node_string);
-            node_tuples.push((index_key, node_string.to_string()))
-            // let node_json =
-            //     json::parse(json_string).map_err(|_| UrbitAPIError::FailedToCreateGraphFromJSON)?;
-            // let node = Node::from_json(&node_json)?;
-            // nodes.push(node);
+            let json = json::parse(&node_string)
+                .map_err(|_| UrbitAPIError::FailedToCreateGraphNodeFromJSON)?;
+            let processed_node = Node::from_json(&json)?;
+            childless_nodes.push(processed_node);
         }
 
-        // Implement logic that checks following node index_key,
-        // and if it is less than current index_key, it must be a child,
-        // and therefore add it to it's children. Most likely use the recursive
-        // function to do this in tandem with the regex above.
+        // Insert all of the childless nodes into the graph.
+        // Places them under the correct parent as required.
+        for cn in childless_nodes {
+            graph.insert(cn);
+        }
 
-        let nodes = Self::from_json_rec(node_tuples)?;
-
-        Ok(Graph::new(nodes))
+        Ok(graph)
     }
 
-    // Recursive function for processing graph node json
-    fn from_json_rec(node_tuples: Vec<(u128, String)>) -> Result<Vec<Node>> {
-        // Need to rework all of the logical checks, but the recurse logic should
-        // mostly be right.
-        todo!()
+    /// Insert a `Node` into the `Graph`.
+    /// Reads the index of the node and embeds it within
+    /// the correct parent node if it is a child.
+    pub fn insert(&mut self, node: Node) {
+        self.nodes.push(node);
+    }
 
-        // if split_text.len() == 2 {
-        //     let mut children_nodes = Ok(vec![]);
-        //     // Check if there are child nodes
-        //     if &(split_text[1])[0..1] == "{" {
-        //         children_nodes = Self::from_json_rec(split_text[1]);
-        //     }
-        //     let node_text = format!(r#"{}children":null"#, split_text[0]) + "}";
-        //     let node_json =
-        //         json::parse(&node_text).map_err(|_| UrbitAPIError::FailedToCreateGraphFromJSON)?;
-        //     let mut node = Node::from_json(&node_json)?;
-        //     node.children = children_nodes?;
-        //     // return ...
-        //     todo!()
-        // }
-        // // If final split
-        // else if split_text.len() == 1 {
-        //     todo!();
-        // }
-        // // Shouldn't happen, but in case of error implemented
-        // else {
-        //     return vec![];
-        // }
+    /// Attempts to find the parent of a given node within `self`.
+    pub fn find_node_parent(&self, child: &Node) -> Option<&Node> {
+        self.nodes.iter().find(|n| n.is_direct_parent(&child))
     }
 
     // Converts to `JsonValue`
     pub fn to_json(&self) -> JsonValue {
-        let nodes_json: Vec<JsonValue> = self.nodes.iter().map(|n| n.to_json()).collect();
+        let nodes_json: Vec<JsonValue> = self
+            .nodes
+            .iter()
+            .map(|n| n.to_json("null".into()))
+            .collect();
         object! {
                             "graph-update": {
                                 "add-graph": {
@@ -122,7 +102,6 @@ impl Node {
         signatures: Vec<String>,
         contents: Vec<JsonValue>,
         hash: Option<String>,
-        children: Vec<Node>,
     ) -> Node {
         Node {
             index: index,
@@ -131,14 +110,57 @@ impl Node {
             signatures: signatures,
             contents: contents,
             hash: hash,
-            children: children,
         }
     }
 
-    // Convert from node `JsonValue` to `Node`
-    pub fn from_json(json: &JsonValue) -> Result<Node> {
+    /// Extract the `Node`'s parent's index (if parent exists)
+    pub fn parent_index(&self) -> Option<String> {
+        let rev_index = self.index.chars().rev().collect::<String>();
+        let split_index: Vec<&str> = rev_index.splitn(2, "/").collect();
+        // Error check
+        if split_index.len() < 2 {
+            return None;
+        }
+
+        let parent_index = split_index[1].chars().rev().collect::<String>();
+
+        Some(parent_index)
+    }
+
+    /// Check if a self is the direct parent of another `Node`.
+    pub fn is_direct_parent(&self, potential_child: &Node) -> bool {
+        if let Some(index) = potential_child.parent_index() {
+            return self.index == index;
+        }
+        false
+    }
+
+    /// Check if self is a parent (direct or indirect) of another `Node`
+    pub fn is_parent(&self, potential_child: &Node) -> bool {
+        let pc_split_index: Vec<&str> = potential_child.index.split("/").collect();
+        let parent_split_index: Vec<&str> = self.index.split("/").collect();
+
+        // Verify the parent has a smaller split index than child
+        if parent_split_index.len() > pc_split_index.len() {
+            return false;
+        }
+
+        // Check if every index split part of the parent is part of
+        // the child
+        let mut matching = false;
+        for n in 0..parent_split_index.len() - 1 {
+            matching = parent_split_index[n] == pc_split_index[n]
+        }
+
+        // Return if parent index is fully part of the child index
+        matching
+    }
+
+    /// Convert from node `JsonValue` to `Node`
+    /// Defaults to no children.
+    fn from_json(json: &JsonValue) -> Result<Node> {
         // Process all of the json fields
-        let children = json["children"].clone();
+        let _children = json["children"].clone();
         let post_json = json["post"].clone();
         let index = post_json["index"]
             .as_str()
@@ -185,12 +207,11 @@ impl Node {
             signatures: signatures,
             contents: contents,
             hash: hash,
-            children: vec![],
         })
     }
 
-    // Converts to `JsonValue`
-    pub fn to_json(&self) -> JsonValue {
+    /// Converts to `JsonValue`
+    pub fn to_json(&self, children: JsonValue) -> JsonValue {
         let mut node_json = object!();
         node_json[self.index.clone()] = object! {
                         "post": {
@@ -201,7 +222,7 @@ impl Node {
                             "hash": null,
                             "signatures": []
                         },
-                        "children": null
+                        "children": children
         };
         node_json
     }
