@@ -1,5 +1,6 @@
+use crate::graph::{Graph, Node};
 use crate::helper::get_current_da_time;
-use crate::{Channel, Graph, Result, UrbitAPIError};
+use crate::{Channel, Result, UrbitAPIError};
 use json::{object, JsonValue};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -9,6 +10,24 @@ pub struct GraphStore<'a> {
 }
 
 impl<'a> GraphStore<'a> {
+    /// A wrapper method around `Node::new()` which fills out a lot of boilerplate
+    /// using defaults from the connected ship and local time.
+    pub fn new_node(&self, contents: Vec<JsonValue>) -> Node {
+        // Add the ~ to the ship name to be used within the post as author
+        let ship = format!("~{}", self.channel.ship_interface.ship_name);
+
+        // The index. For chat the default is current time in `@da` encoding with a `/` in front.
+        let index = format!("/{}", get_current_da_time());
+
+        // Get the current Unix Time
+        let unix_time = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_millis() as u64;
+
+        Node::new(index, ship.clone(), unix_time, vec![], contents, None)
+    }
+
     /// Issue a `post` to Graph Store.
     /// On success returns the index of the newly added node.
     pub fn post(
@@ -57,12 +76,36 @@ impl<'a> GraphStore<'a> {
         };
 
         // Using `?` to ensure adding the node was a success, else return error.
-        self.add_nodes(resource_ship, resource_name, nodes_json)?;
+        self.add_nodes_by_json(resource_ship, resource_name, nodes_json)?;
         Ok(index.to_string())
     }
 
+    /// Add node to Graph Store
+    pub fn add_node(&mut self, resource_ship: &str, resource_name: &str, node: Node) -> Result<()> {
+        let prepped_json = object! {
+            "add-nodes": {
+                "resource": {
+                    "ship": resource_ship,
+                    "name": resource_name
+                },
+            "nodes": node.to_json(None)
+            }
+        };
+        println!("Node: {}", prepped_json.dump());
+
+        let resp = (&mut self.channel).poke("graph-push-hook", "graph-update", &prepped_json)?;
+
+        if resp.status().as_u16() == 204 {
+            Ok(())
+        } else {
+            return Err(UrbitAPIError::FailedToAddNodesToGraphStore(
+                resource_name.to_string(),
+            ));
+        }
+    }
+
     /// Add nodes to Graph Store
-    pub fn add_nodes(
+    pub fn add_nodes_by_json(
         &mut self,
         resource_ship: &str,
         resource_name: &str,
@@ -77,6 +120,8 @@ impl<'a> GraphStore<'a> {
             "nodes": nodes_json
             }
         };
+
+        println!("Prepped post: {}", prepped_json.dump());
 
         let resp = (&mut self.channel).poke("graph-push-hook", "graph-update", &prepped_json)?;
 
