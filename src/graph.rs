@@ -28,24 +28,76 @@ impl Graph {
 
     // Convert from graph `JsonValue` to `Graph`
     pub fn from_json(graph_json: JsonValue) -> Result<Graph> {
-        let mut nodes = vec![];
+        // List of node tuples
+        let mut node_tuples = vec![];
         // Get the graph inner json
-        let graph_text = format!("{}", graph_json["graph-update"]["add-graph"]["graph"]);
+        let mut graph_text = format!("{}", graph_json["graph-update"]["add-graph"]["graph"]);
+        println!("graph text: {}", graph_text);
 
         // Create regex to capture each node json
-        let re = Regex::new(r#""\d+":(.+?children":.+?})"#).unwrap();
+        let re = Regex::new(r#""(\d+)":(.+?children":).+?"#)
+            .map_err(|_| UrbitAPIError::FailedToCreateGraphFromJSON)?;
         // For each capture group, create a node and add to to the nodes list
         for capture in re.captures_iter(&graph_text) {
-            let json_string = capture
+            // Get the index key for the given node
+            let index_key = capture
                 .get(1)
                 .ok_or(UrbitAPIError::FailedToCreateGraphFromJSON)?
+                .as_str()
+                .parse::<u64>()
+                .map_err(|_| UrbitAPIError::FailedToCreateGraphFromJSON)?;
+            let node_string = capture
+                .get(2)
+                .ok_or(UrbitAPIError::FailedToCreateGraphFromJSON)?
                 .as_str();
-            let node_json =
-                json::parse(json_string).map_err(|_| UrbitAPIError::FailedToCreateGraphFromJSON)?;
-            let node = Node::from_json(&node_json)?;
-            nodes.push(node);
+            println!(" ");
+            println!("index key: {}", index_key);
+            println!("node string: {}", node_string);
+            node_tuples.push((index_key, node_string.to_string()))
+            // let node_json =
+            //     json::parse(json_string).map_err(|_| UrbitAPIError::FailedToCreateGraphFromJSON)?;
+            // let node = Node::from_json(&node_json)?;
+            // nodes.push(node);
         }
+
+        // Implement logic that checks following node index_key,
+        // and if it is less than current index_key, it must be a child,
+        // and therefore add it to it's children. Most likely use the recursive
+        // function to do this in tandem with the regex above.
+
+        let nodes = Self::from_json_rec(node_tuples)?;
+
         Ok(Graph::new(nodes))
+    }
+
+    // Recursive function for processing graph node json
+    fn from_json_rec(node_tuples: Vec<(u64, String)>) -> Result<Vec<Node>> {
+        // Need to rework all of the logical checks, but the recurse logic should
+        // mostly be right.
+        todo!()
+
+        // if split_text.len() == 2 {
+        //     let mut children_nodes = Ok(vec![]);
+        //     // Check if there are child nodes
+        //     if &(split_text[1])[0..1] == "{" {
+        //         children_nodes = Self::from_json_rec(split_text[1]);
+        //     }
+        //     let node_text = format!(r#"{}children":null"#, split_text[0]) + "}";
+        //     let node_json =
+        //         json::parse(&node_text).map_err(|_| UrbitAPIError::FailedToCreateGraphFromJSON)?;
+        //     let mut node = Node::from_json(&node_json)?;
+        //     node.children = children_nodes?;
+        //     // return ...
+        //     todo!()
+        // }
+        // // If final split
+        // else if split_text.len() == 1 {
+        //     todo!();
+        // }
+        // // Shouldn't happen, but in case of error implemented
+        // else {
+        //     return vec![];
+        // }
     }
 
     // Converts to `JsonValue`

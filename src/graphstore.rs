@@ -125,8 +125,6 @@ impl<'a> GraphStore<'a> {
             .ship_interface
             .scry("graph-store", &path, "json")?;
 
-        println!("Resp: {}", res.status().as_u16());
-
         if res.status().as_u16() == 200 {
             if let Ok(body) = res.text() {
                 let graph_json = json::parse(&body).expect("Failed to parse graph json.");
