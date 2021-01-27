@@ -15,7 +15,7 @@ pub struct Node {
     pub author: String,
     pub time_sent: u64,
     pub signatures: Vec<String>,
-    pub contents: Vec<String>,
+    pub contents: Vec<JsonValue>,
     pub hash: Option<String>,
     pub children: Vec<Node>,
 }
@@ -68,7 +68,7 @@ impl Node {
         author: String,
         time_sent: u64,
         signatures: Vec<String>,
-        contents: Vec<String>,
+        contents: Vec<JsonValue>,
         hash: Option<String>,
         children: Vec<Node>,
     ) -> Node {
@@ -112,12 +112,7 @@ impl Node {
         // Convert array JsonValue to vector for contents
         let mut contents = vec![];
         for content in post_json["contents"].members() {
-            contents.push(
-                content
-                    .as_str()
-                    .ok_or(UrbitAPIError::FailedToCreateGraphNodeFromJSON)?
-                    .to_string(),
-            );
+            contents.push(content.clone());
         }
 
         // Convert array JsonValue to vector for signatures
