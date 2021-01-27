@@ -1,4 +1,5 @@
-use crate::{Channel, Result};
+use crate::graph::{Graph, Node};
+use crate::{Channel, Result, UrbitAPIError};
 use json::{object, JsonValue};
 
 /// A struct that provides an interface for interacting with Urbit chats
@@ -25,9 +26,22 @@ impl<'a> Chat<'a> {
         chat_name: &str,
         message: &Message,
     ) -> Result<String> {
-        self.channel
+        let node = self
+            .channel
             .graph_store()
-            .post(chat_ship, chat_name, message.clone().contents)
+            .new_node(message.clone().contents);
+
+        if let Ok(_) = self
+            .channel
+            .graph_store()
+            .add_node(chat_ship, chat_name, node.clone())
+        {
+            Ok(node.index)
+        } else {
+            Err(UrbitAPIError::FailedToSendChatMessage(
+                message.contents[0].dump(),
+            ))
+        }
     }
 }
 
