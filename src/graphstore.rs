@@ -1,5 +1,5 @@
 use crate::helper::get_current_da_time;
-use crate::{Channel, Result, UrbitAPIError};
+use crate::{Channel, Graph, Result, UrbitAPIError};
 use json::{object, JsonValue};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -118,7 +118,7 @@ impl<'a> GraphStore<'a> {
     }
 
     /// Acquire a graph from Graph Store
-    pub fn get_graph(&mut self, resource_ship: &str, resource_name: &str) -> Result<String> {
+    pub fn get_graph(&mut self, resource_ship: &str, resource_name: &str) -> Result<Graph> {
         let path = format!("/graph/{}/{}", resource_ship, resource_name);
         let res = self
             .channel
@@ -129,7 +129,8 @@ impl<'a> GraphStore<'a> {
 
         if res.status().as_u16() == 200 {
             if let Ok(body) = res.text() {
-                return Ok(body);
+                let graph_json = json::parse(&body).expect("Failed to parse graph json.");
+                return Graph::from_json(graph_json);
             }
         }
         return Err(UrbitAPIError::FailedToGetGraph(resource_name.to_string()));

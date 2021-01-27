@@ -1,8 +1,8 @@
 use crate::error::{Result, UrbitAPIError};
-use json::JsonValue;
+use json::{object, JsonValue};
 use regex::Regex;
 
-/// Struct which represents a graph in Graph Store
+/// Struct which represents a graph in Graph Store.
 #[derive(Clone, Debug)]
 pub struct Graph {
     pub nodes: Vec<Node>,
@@ -27,7 +27,7 @@ impl Graph {
     }
 
     // Convert from graph `JsonValue` to `Graph`
-    fn from_json(graph_json: JsonValue) -> Result<Graph> {
+    pub fn from_json(graph_json: JsonValue) -> Result<Graph> {
         let mut nodes = vec![];
         // Get the graph inner json
         let graph_text = format!("{}", graph_json["graph-update"]["add-graph"]["graph"]);
@@ -46,6 +46,18 @@ impl Graph {
             nodes.push(node);
         }
         Ok(Graph::new(nodes))
+    }
+
+    // Converts to `JsonValue`
+    pub fn to_json(&self) -> JsonValue {
+        let nodes_json: Vec<JsonValue> = self.nodes.iter().map(|n| n.to_json()).collect();
+        object! {
+                            "graph-update": {
+                                "add-graph": {
+                                    "graph": nodes_json,
+        }
+                }
+                        }
     }
 }
 
@@ -72,7 +84,7 @@ impl Node {
     }
 
     // Convert from node `JsonValue` to `Node`
-    fn from_json(json: &JsonValue) -> Result<Node> {
+    pub fn from_json(json: &JsonValue) -> Result<Node> {
         // Process all of the json fields
         let children = json["children"].clone();
         let post_json = json["post"].clone();
@@ -128,5 +140,22 @@ impl Node {
             hash: hash,
             children: vec![],
         })
+    }
+
+    // Converts to `JsonValue`
+    pub fn to_json(&self) -> JsonValue {
+        let mut node_json = object!();
+        node_json[self.index.clone()] = object! {
+                        "post": {
+                            "author": self.author.clone(),
+                            "index": self.index.clone(),
+                            "time-sent": self.time_sent,
+                            "contents": self.contents.clone(),
+                            "hash": null,
+                            "signatures": []
+                        },
+                        "children": null
+        };
+        node_json
     }
 }
