@@ -44,7 +44,7 @@ impl Graph {
                 .get(1)
                 .ok_or(UrbitAPIError::FailedToCreateGraphFromJSON)?
                 .as_str()
-                .parse::<u64>()
+                .parse::<u128>()
                 .map_err(|_| UrbitAPIError::FailedToCreateGraphFromJSON)?;
             let node_string = capture
                 .get(2)
@@ -71,7 +71,7 @@ impl Graph {
     }
 
     // Recursive function for processing graph node json
-    fn from_json_rec(node_tuples: Vec<(u64, String)>) -> Result<Vec<Node>> {
+    fn from_json_rec(node_tuples: Vec<(u128, String)>) -> Result<Vec<Node>> {
         // Need to rework all of the logical checks, but the recurse logic should
         // mostly be right.
         todo!()
