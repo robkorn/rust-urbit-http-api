@@ -17,3 +17,4 @@ json                    = "0.12.4"
 rand                    = "0.8.2"
 reqwest                 = {version = "0.10.9", features= ["blocking", "json"]}
 yaml-rust               = "0.4.5"
+regex                   = "1.4.3"

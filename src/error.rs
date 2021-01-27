@@ -23,6 +23,10 @@ pub enum UrbitAPIError {
     FailedToRemoveNodesFromGraphStore(String),
     #[error("Failed to remove graph from Graph Store for resource {0}.")]
     FailedToRemoveGraphFromGraphStore(String),
+    #[error("Failed to build a Graph struct from supplied JsonValue.")]
+    FailedToCreateGraphFromJSON,
+    #[error("Failed to build a Node struct from supplied JsonValue.")]
+    FailedToCreateGraphNodeFromJSON,
     #[error("{0}")]
     Other(String),
     #[error(transparent)]
