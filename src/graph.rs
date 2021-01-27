@@ -25,6 +25,28 @@ impl Graph {
     pub fn new(nodes: Vec<Node>) -> Graph {
         Graph { nodes: nodes }
     }
+
+    // Convert from graph `JsonValue` to `Graph`
+    fn from_json(graph_json: JsonValue) -> Result<Graph> {
+        let mut nodes = vec![];
+        // Get the graph inner json
+        let graph_text = format!("{}", graph_json["graph-update"]["add-graph"]["graph"]);
+
+        // Create regex to capture each node json
+        let re = Regex::new(r#""\d+":(.+?children":.+?})"#).unwrap();
+        // For each capture group, create a node and add to to the nodes list
+        for capture in re.captures_iter(&graph_text) {
+            let json_string = capture
+                .get(1)
+                .ok_or(UrbitAPIError::FailedToCreateGraphFromJSON)?
+                .as_str();
+            let node_json =
+                json::parse(json_string).map_err(|_| UrbitAPIError::FailedToCreateGraphFromJSON)?;
+            let node = Node::from_json(&node_json)?;
+            nodes.push(node);
+        }
+        Ok(Graph::new(nodes))
+    }
 }
 
 impl Node {
@@ -49,8 +71,8 @@ impl Node {
         }
     }
 
-    // Convert from node `JsonValue` from graph json
-    fn from_json(json: JsonValue) -> Result<Node> {
+    // Convert from node `JsonValue` to `Node`
+    fn from_json(json: &JsonValue) -> Result<Node> {
         // Process all of the json fields
         let children = json["children"].clone();
         let post_json = json["post"].clone();
