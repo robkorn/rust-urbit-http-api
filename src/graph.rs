@@ -18,8 +18,14 @@ pub struct Node {
     pub author: String,
     pub time_sent: u64,
     pub signatures: Vec<String>,
-    pub contents: Vec<JsonValue>,
+    pub contents: NodeContents,
     pub hash: Option<String>,
+}
+
+/// Struct which represents the contents inside of a node
+#[derive(Debug, Clone)]
+pub struct NodeContents {
+    pub content_list: Vec<JsonValue>,
 }
 
 impl Graph {
@@ -100,7 +106,7 @@ impl Node {
         author: String,
         time_sent: u64,
         signatures: Vec<String>,
-        contents: Vec<JsonValue>,
+        contents: NodeContents,
         hash: Option<String>,
     ) -> Node {
         Node {
@@ -184,10 +190,11 @@ impl Node {
         };
 
         // Convert array JsonValue to vector for contents
-        let mut contents = vec![];
+        let mut json_contents = vec![];
         for content in post_json["contents"].members() {
-            contents.push(content.clone());
+            json_contents.push(content.clone());
         }
+        let contents = NodeContents::from_json(json_contents);
 
         // Convert array JsonValue to vector for signatures
         let mut signatures = vec![];
@@ -224,12 +231,104 @@ impl Node {
                             "author": self.author.clone(),
                             "index": self.index.clone(),
                             "time-sent": self.time_sent,
-                            "contents": self.contents.clone(),
+                            "contents": self.contents.to_json(),
                             "hash": null,
                             "signatures": []
                         },
                         "children": final_children
         };
         node_json
+    }
+}
+
+/// Methods for `NodeContents`
+impl NodeContents {
+    /// Create a new empty `NodeContents`
+    pub fn new() -> NodeContents {
+        NodeContents {
+            content_list: vec![],
+        }
+    }
+
+    /// Appends text to the end of the list of contents
+    pub fn add_text(&self, text: &str) -> NodeContents {
+        let formatted = object! {
+            "text": text
+        };
+        self.add_to_contents(formatted)
+    }
+
+    /// Appends a url to the end of the list of contents
+    pub fn add_url(&self, url: &str) -> NodeContents {
+        let formatted = object! {
+            "url": url
+        };
+        self.add_to_contents(formatted)
+    }
+
+    /// Appends a mention to another @p/ship to the end of the list of contents
+    pub fn add_mention(&self, referenced_ship: &str) -> NodeContents {
+        let formatted = object! {
+            "mention": referenced_ship
+        };
+        self.add_to_contents(formatted)
+    }
+
+    /// Appends a code block to the end of the list of contents
+    pub fn add_code(&self, expression: &str, output: &str) -> NodeContents {
+        let formatted = object! {
+            "code": {
+                "expression": expression,
+                "output": [[output]]
+            }
+        };
+        self.add_to_contents(formatted)
+    }
+
+    /// Create a `NodeContents` from a list of `JsonValue`s
+    pub fn from_json(json_contents: Vec<JsonValue>) -> NodeContents {
+        NodeContents {
+            content_list: json_contents,
+        }
+    }
+
+    /// Convert the `NodeContents` into a json array in a `JsonValue`
+    pub fn to_json(&self) -> JsonValue {
+        self.content_list.clone().into()
+    }
+
+    /// Convert the `NodeContents` into a single `String` that is formatted
+    /// for human reading.
+    pub fn to_formatted_string(&self) -> String {
+        let mut result = "".to_string();
+        for item in &self.content_list {
+            // Convert item into text
+            let text = Self::extract_content_text(item);
+            result = result + " " + &text;
+        }
+        result
+    }
+
+    // Extracts content from a content list item `JsonValue`
+    fn extract_content_text(json: &JsonValue) -> String {
+        if !json["text"].is_empty() {
+            return json["text"].dump();
+        } else if !json["url"].is_empty() {
+            return json["url"].dump();
+        } else if !json["mention"].is_empty() {
+            return json["mention"].dump();
+        } else if !json["code"].is_empty() {
+            return json["code"].dump();
+        }
+        "None".to_string()
+    }
+
+    /// Internal method to append `JsonValue` to the end of the list of contents
+    fn add_to_contents(&self, json: JsonValue) -> NodeContents {
+        let mut contents = self.content_list.clone();
+        contents.append(&mut vec![json]);
+        NodeContents {
+            content_list: contents,
+        }
     }
 }

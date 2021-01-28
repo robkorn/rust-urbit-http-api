@@ -1,7 +1,7 @@
-use crate::graph::{Graph, Node};
+use crate::graph::{Graph, Node, NodeContents};
 use crate::helper::get_current_da_time;
 use crate::{Channel, Result, UrbitAPIError};
-use json::{object, JsonValue};
+use json::object;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 /// A struct which exposes Graph Store functionality
@@ -12,7 +12,7 @@ pub struct GraphStore<'a> {
 impl<'a> GraphStore<'a> {
     /// Create a new Graph Store node using defaults from the connected ship and local time.
     /// This is a wrapper method around `Node::new()` which fills out a lot of boilerplate.
-    pub fn new_node(&self, contents: Vec<JsonValue>) -> Node {
+    pub fn new_node(&self, contents: &NodeContents) -> Node {
         // Add the ~ to the ship name to be used within the post as author
         let ship = format!("~{}", self.channel.ship_interface.ship_name);
 
@@ -25,11 +25,23 @@ impl<'a> GraphStore<'a> {
             .unwrap()
             .as_millis() as u64;
 
-        Node::new(index, ship.clone(), unix_time, vec![], contents, None)
+        Node::new(
+            index,
+            ship.clone(),
+            unix_time,
+            vec![],
+            contents.clone(),
+            None,
+        )
     }
 
     /// Add node to Graph Store
-    pub fn add_node(&mut self, resource_ship: &str, resource_name: &str, node: Node) -> Result<()> {
+    pub fn add_node(
+        &mut self,
+        resource_ship: &str,
+        resource_name: &str,
+        node: &Node,
+    ) -> Result<()> {
         let prepped_json = object! {
             "add-nodes": {
                 "resource": {
