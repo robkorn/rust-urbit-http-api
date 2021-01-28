@@ -55,7 +55,6 @@ impl Graph {
         let mut childless_nodes = vec![];
         // Get the graph inner json
         let graph_text = format!("{}", graph_json["graph-update"]["add-graph"]["graph"]);
-        println!("graph text: {}", graph_text);
 
         // Create regex to capture each node json
         let re = Regex::new(r#""\d+":(.+?children":).+?"#)
@@ -69,8 +68,6 @@ impl Graph {
                 .as_str()
                 .to_string()
                 + r#"null}"#;
-            println!(" ");
-            println!("node string: {}", node_string);
             let json = json::parse(&node_string)
                 .map_err(|_| UrbitAPIError::FailedToCreateGraphNodeFromJSON)?;
             let processed_node = Node::from_json(&json)?;
@@ -162,6 +159,36 @@ impl Node {
         matching
     }
 
+    /// Converts the `Node` into a human readable formatted string which
+    /// includes the author, date, and node contents.
+    pub fn to_formatted_string(&self) -> String {
+        let content = self.contents.to_formatted_string();
+        format!("{} - {}:{}", self.time_sent, self.author, content)
+    }
+
+    /// Converts to `JsonValue`
+    pub fn to_json(&self, children: Option<JsonValue>) -> JsonValue {
+        let mut node_json = object!();
+
+        let final_children = match children {
+            Some(json) => json,
+            None => JsonValue::Null,
+        };
+
+        node_json[self.index.clone()] = object! {
+                        "post": {
+                            "author": self.author.clone(),
+                            "index": self.index.clone(),
+                            "time-sent": self.time_sent,
+                            "contents": self.contents.to_json(),
+                            "hash": null,
+                            "signatures": []
+                        },
+                        "children": final_children
+        };
+        node_json
+    }
+
     /// Convert from node `JsonValue` to `Node`
     /// Defaults to no children.
     fn from_json(json: &JsonValue) -> Result<Node> {
@@ -215,29 +242,6 @@ impl Node {
             contents: contents,
             hash: hash,
         })
-    }
-
-    /// Converts to `JsonValue`
-    pub fn to_json(&self, children: Option<JsonValue>) -> JsonValue {
-        let mut node_json = object!();
-
-        let final_children = match children {
-            Some(json) => json,
-            None => JsonValue::Null,
-        };
-
-        node_json[self.index.clone()] = object! {
-                        "post": {
-                            "author": self.author.clone(),
-                            "index": self.index.clone(),
-                            "time-sent": self.time_sent,
-                            "contents": self.contents.to_json(),
-                            "hash": null,
-                            "signatures": []
-                        },
-                        "children": final_children
-        };
-        node_json
     }
 }
 

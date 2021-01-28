@@ -37,4 +37,16 @@ impl<'a> Chat<'a> {
             ))
         }
     }
+
+    /// Extracts a Chat's messages automatically into a list of `String`s
+    pub fn export_chat_log(&mut self, chat_ship: &str, chat_name: &str) -> Result<Vec<String>> {
+        let chat_graph = &self.channel.graph_store().get_graph(chat_ship, chat_name)?;
+        let mut export_log = vec![];
+
+        for node in chat_graph.clone().nodes {
+            export_log.push(node.to_formatted_string());
+        }
+
+        Ok(export_log)
+    }
 }
