@@ -1,4 +1,5 @@
 use crate::error::{Result, UrbitAPIError};
+use chrono::prelude::*;
 use json::{object, JsonValue};
 use regex::Regex;
 
@@ -162,8 +163,13 @@ impl Node {
     /// Converts the `Node` into a human readable formatted string which
     /// includes the author, date, and node contents.
     pub fn to_formatted_string(&self) -> String {
+        let unix_time = self.time_sent as i64 / 1000;
+        let date_time: DateTime<Utc> =
+            DateTime::from_utc(NaiveDateTime::from_timestamp(unix_time, 0), Utc);
+        let new_date = date_time.format("%Y-%m-%d %H:%M:%S");
+
         let content = self.contents.to_formatted_string();
-        format!("{} - {}:{}", self.time_sent, self.author, content)
+        format!("{} - {}:{}", new_date, self.author, content)
     }
 
     /// Converts to `JsonValue`
