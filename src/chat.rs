@@ -44,7 +44,9 @@ impl<'a> Chat<'a> {
         let mut export_log = vec![];
 
         for node in chat_graph.clone().nodes {
-            export_log.push(node.to_formatted_string());
+            if !node.contents.is_empty() {
+                export_log.push(node.to_formatted_string());
+            }
         }
 
         Ok(export_log)

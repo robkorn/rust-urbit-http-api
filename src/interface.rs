@@ -79,7 +79,6 @@ impl ShipInterface {
     /// Sends a scry to the ship
     pub fn scry(&self, app: &str, path: &str, mark: &str) -> Result<Response> {
         let scry_url = format!("{}/~/scry/{}{}.{}", self.url, app, path, mark);
-        println!("{}", scry_url);
         let resp = self
             .req_client
             .get(&scry_url)

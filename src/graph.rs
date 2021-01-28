@@ -254,6 +254,10 @@ impl NodeContents {
         }
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.content_list.len() == 0
+    }
+
     /// Appends text to the end of the list of contents
     pub fn add_text(&self, text: &str) -> NodeContents {
         let formatted = object! {
@@ -308,23 +312,29 @@ impl NodeContents {
         for item in &self.content_list {
             // Convert item into text
             let text = Self::extract_content_text(item);
-            result = result + " " + &text;
+            result = result + " " + text.trim();
         }
         result
     }
 
     // Extracts content from a content list item `JsonValue`
     fn extract_content_text(json: &JsonValue) -> String {
+        let mut result = "  ".to_string();
         if !json["text"].is_empty() {
-            return json["text"].dump();
+            result = json["text"].dump();
         } else if !json["url"].is_empty() {
-            return json["url"].dump();
+            result = json["url"].dump();
         } else if !json["mention"].is_empty() {
-            return json["mention"].dump();
+            result = json["mention"].dump();
+            result.remove(0);
+            result.remove(result.len() - 1);
+            return format!("~{}", result);
         } else if !json["code"].is_empty() {
-            return json["code"].dump();
+            result = json["code"].dump();
         }
-        "None".to_string()
+        result.remove(0);
+        result.remove(result.len() - 1);
+        result
     }
 
     /// Internal method to append `JsonValue` to the end of the list of contents
