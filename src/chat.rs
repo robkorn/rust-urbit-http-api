@@ -10,6 +10,7 @@ pub struct Chat<'a> {
 /// `Message` provides methods to build a message in chunks, thereby allowing you
 /// to add content which needs to be parsed, for example links @p mentions.
 /// It is technically an alias for the `NodeContents` struct.
+// #[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub type Message = NodeContents;
 
 /// Methods for interacting with a Chat
@@ -43,7 +44,10 @@ impl<'a> Chat<'a> {
         let chat_graph = &self.channel.graph_store().get_graph(chat_ship, chat_name)?;
         let mut export_log = vec![];
 
-        for node in chat_graph.clone().nodes {
+        let mut nodes = chat_graph.clone().nodes;
+        nodes.sort_by(|a, b| a.time_sent.cmp(&b.time_sent));
+
+        for node in nodes {
             if !node.contents.is_empty() {
                 export_log.push(node.to_formatted_string());
             }

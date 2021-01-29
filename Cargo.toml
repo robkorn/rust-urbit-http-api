@@ -1,6 +1,6 @@
 [package]
 name = "urbit-http-api"
-version = "0.1.8"
+version = "0.2.0"
 authors = ["Robert Kornacki <11645932+robkorn@users.noreply.github.com>"]
 edition = "2018"
 description = "Wraps the Urbit ship http api exposing it as an easy-to-use Rust crate."
@@ -14,8 +14,8 @@ keywords = ["http", "urbit", "webhook"]
 eventsource-threaded    = "0.1.0"
 thiserror               = "1.0.23"
 json                    = "0.12.4"
-rand                    = "0.8.2"
-reqwest                 = {version = "0.10.9", features= ["blocking", "json"]}
+rand                    = "0.8.3"
+reqwest                 = {version = "0.11.0", features= ["blocking", "json"]}
 yaml-rust               = "0.4.5"
 regex                   = "1.4.3"
 chrono                  = "0.4.19"
