@@ -169,7 +169,7 @@ impl Node {
         let new_date = date_time.format("%Y-%m-%d %H:%M:%S");
 
         let content = self.contents.to_formatted_string();
-        format!("{} - {}:{}", new_date, self.author, content)
+        format!("{} - ~{}:{}", new_date, self.author, content)
     }
 
     /// Converts to `JsonValue`
