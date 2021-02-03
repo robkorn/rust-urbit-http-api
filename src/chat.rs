@@ -14,6 +14,7 @@ pub struct Chat<'a> {
 pub type Message = NodeContents;
 
 /// A `Message` with the author @p also included
+#[derive(Clone, Debug)]
 pub struct AuthoredMessage {
     pub author: String,
     pub message: Message,
