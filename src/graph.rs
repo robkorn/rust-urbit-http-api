@@ -200,17 +200,13 @@ impl Node {
     /// Defaults to no children.
     pub fn from_graph_update_json(wrapped_json: &JsonValue) -> Result<Node> {
         let dumped = wrapped_json["graph-update"]["add-nodes"]["nodes"].dump();
-        println!("Dumped: {}", dumped);
         let split: Vec<&str> = dumped.splitn(2, ":").collect();
-        println!("Split {}: {:?}", split.len(), split);
         if split.len() <= 1 {
             return Err(UrbitAPIError::FailedToCreateGraphNodeFromJSON);
         }
 
         let mut inner_string = split[1].to_string();
         inner_string.remove(inner_string.len() - 1);
-
-        println!("inner string: {}", inner_string);
 
         let inner_json = json::parse(&inner_string)
             .map_err(|_| UrbitAPIError::FailedToCreateGraphNodeFromJSON)?;
