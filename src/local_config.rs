@@ -49,3 +49,18 @@ pub fn ship_interface_from_config(path_to_file: &str) -> Option<ShipInterface> {
     let yaml = YamlLoader::load_from_str(&yaml_str).unwrap()[0].clone();
     ship_interface_from_yaml(yaml)
 }
+
+/// A function for CLI apps which first attempts to create a new local ship config file if one does not exist and exits with a helpful message.
+/// If a config does exist, then it tries to connect to the Urbit Ship specified in the config.
+/// If connection fails then prints a message telling the user to check their local config.
+pub fn default_cli_ship_interface_setup() -> ShipInterface {
+    if let Some(_) = create_new_ship_config_file() {
+        println!("Ship configuration file created. Please edit `ship_config.yaml` with your ship info and restart the application.");
+        std::process::exit(0);
+    }
+    if let Some(ship) = ship_interface_from_local_config() {
+        return ship;
+    }
+    println!("Failed to connect to Ship using information from local config.");
+    std::process::exit(1);
+}
