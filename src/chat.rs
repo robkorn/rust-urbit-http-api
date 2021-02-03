@@ -13,6 +13,22 @@ pub struct Chat<'a> {
 // #[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub type Message = NodeContents;
 
+/// A `Message` with the author @p also included
+pub struct AuthoredMessage {
+    pub author: String,
+    pub message: Message,
+}
+
+impl AuthoredMessage {
+    /// Create a new `AuthoredMessage`
+    pub fn new(author: String, message: Message) -> Self {
+        AuthoredMessage {
+            author: author,
+            message: message,
+        }
+    }
+}
+
 /// Methods for interacting with a Chat
 impl<'a> Chat<'a> {
     /// Send a message to an Urbit chat.
