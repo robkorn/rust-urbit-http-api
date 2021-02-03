@@ -16,7 +16,7 @@ impl<'a> GraphStore<'a> {
         // Add the ~ to the ship name to be used within the post as author
         let ship = format!("~{}", self.channel.ship_interface.ship_name);
 
-        // The index. For chat the default is current time in `@da` encoding with a `/` in front.
+        // The index. For chat the default is current `@da` time as atom encoding with a `/` in front.
         let index = format!("/{}", get_current_da_time());
 
         // Get the current Unix Time
