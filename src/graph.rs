@@ -342,6 +342,17 @@ impl NodeContents {
         result
     }
 
+    /// Converts the `NodeContents` into a `String` that is formatted
+    /// for human reading, which is then split at every whitespace.
+    /// Useful for parsing a message.
+    pub fn to_formatted_words(&self) -> Vec<String> {
+        let formatted_string = self.to_formatted_string();
+        formatted_string
+            .split_whitespace()
+            .map(|s| s.to_string())
+            .collect()
+    }
+
     // Extracts content from a content list item `JsonValue`
     fn extract_content_text(json: &JsonValue) -> String {
         let mut result = "  ".to_string();
