@@ -9,7 +9,11 @@ use regex::Regex;
 /// inadequate in real world use cases.
 #[derive(Clone, Debug)]
 pub struct Graph {
+    /// List of nodes structured as a graph with children
     pub nodes: Vec<Node>,
+    // /// List of all nodes in the graph in a flat list with all
+    // /// children being exposed on the top level.
+    // node_flat_list: Vec<Node>,
 }
 
 /// Struct which represents a node in a graph in Graph Store
@@ -21,6 +25,7 @@ pub struct Node {
     pub signatures: Vec<String>,
     pub contents: NodeContents,
     pub hash: Option<String>,
+    pub children: Vec<Node>,
 }
 
 /// Struct which represents the contents inside of a node
@@ -35,9 +40,7 @@ impl Graph {
         Graph { nodes: nodes }
     }
 
-    /// Insert a `Node` into the `Graph`.
-    /// Reads the index of the node and embeds it within
-    /// the correct parent node if it is a child.
+    /// Insert a `Node` into the top level of the `Graph`.
     pub fn insert(&mut self, node: Node) {
         self.nodes.push(node);
     }
@@ -77,9 +80,23 @@ impl Graph {
 
         // Insert all of the childless nodes into the graph.
         // Places them under the correct parent as required.
-        for cn in childless_nodes {
-            graph.insert(cn);
+        let mut building_node = childless_nodes[0].clone();
+        // println!("Current index: {}", childless_nodes[0].index);
+        for i in 1..childless_nodes.len() {
+            // println!("Current index: {}", childless_nodes[i].index);
+            if building_node.is_parent(&childless_nodes[i]) {
+                building_node.children.push(childless_nodes[i].clone());
+                // Add the child into the correct depth and update building_node
+                if let Some(updated_node) = building_node.add_child(&childless_nodes[i]) {
+                    building_node = updated_node;
+                }
+            } else {
+                graph.insert(building_node.clone());
+                building_node = childless_nodes[i].clone();
+            }
         }
+        // Add the final building_node
+        graph.insert(building_node.clone());
 
         Ok(graph)
     }
@@ -114,6 +131,7 @@ impl Node {
             signatures: signatures,
             contents: contents,
             hash: hash,
+            children: vec![],
         }
     }
 
@@ -152,12 +170,47 @@ impl Node {
         // Check if every index split part of the parent is part of
         // the child
         let mut matching = false;
-        for n in 0..parent_split_index.len() - 1 {
+        for n in 0..parent_split_index.len() {
             matching = parent_split_index[n] == pc_split_index[n]
         }
 
         // Return if parent index is fully part of the child index
         matching
+    }
+
+    /// Creates a copy of self and inserts the `potential_child` if it can find
+    /// it's direct parent.
+    pub fn add_child(&self, potential_child: &Node) -> Option<Node> {
+        println!("Potential Child: {}", potential_child.index);
+        for child in self.children.clone() {
+            println!("Current index: {}", child.index);
+            if child.is_direct_parent(potential_child) {
+                println!("direct parent");
+                let mut new_self = self.clone();
+                println!("new self: {:?}", new_self);
+                new_self.children.push(potential_child.clone());
+                return Some(new_self);
+            } else if child.is_parent(potential_child) {
+                println!("is parent");
+                return child.add_child(potential_child);
+            }
+        }
+        None
+
+        // let mut building_node = children[0].clone();
+        // println!("Current index: {}", children[0].index);
+        // for i in 1..children.len() {
+        //     println!("Current index: {}", children[i].index);
+        //     if building_node.is_parent(&children[i]) {
+        //         println!("is parent");
+        //         building_node.children.push(children[i].clone());
+        //     } else {
+        //         println!("aint a parent");
+        //         graph.insert(building_node.clone());
+        //         building_node = children[i].clone();
+        //     }
+        // }
+        // self.children.push(node.clone());
     }
 
     /// Converts the `Node` into a human readable formatted string which
@@ -266,6 +319,7 @@ impl Node {
             signatures: signatures,
             contents: contents,
             hash: hash,
+            children: vec![],
         })
     }
 }
