@@ -37,7 +37,7 @@ impl Channel {
         let mut rng = rand::thread_rng();
         // Defining the uid as UNIX time, or random if error
         let uid = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-            Ok(n) => n.as_secs(),
+            Ok(n) => n.as_micros(),
             Err(_) => rng.gen(),
         }
         .to_string();
