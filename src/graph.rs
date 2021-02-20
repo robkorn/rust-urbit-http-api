@@ -85,11 +85,9 @@ impl Graph {
         for i in 1..childless_nodes.len() {
             // println!("Current index: {}", childless_nodes[i].index);
             if building_node.is_parent(&childless_nodes[i]) {
-                building_node.children.push(childless_nodes[i].clone());
-                // Add the child into the correct depth and update building_node
-                if let Some(updated_node) = building_node.add_child(&childless_nodes[i]) {
-                    building_node = updated_node;
-                }
+                // building_node.children.push(childless_nodes[i].clone());
+                // Add the child into the deepest depth possible and update building_node
+                building_node = building_node.add_child(&childless_nodes[i]);
             } else {
                 graph.insert(building_node.clone());
                 building_node = childless_nodes[i].clone();
@@ -178,39 +176,29 @@ impl Node {
         matching
     }
 
-    /// Creates a copy of self and inserts the `potential_child` if it can find
-    /// it's direct parent.
-    pub fn add_child(&self, potential_child: &Node) -> Option<Node> {
+    /// Creates a copy of self and searches through the children to find
+    /// the deepest depth which the `potential_child` can be placed.
+    pub fn add_child(&self, potential_child: &Node) -> Node {
         println!("Potential Child: {}", potential_child.index);
-        for child in self.children.clone() {
+        let mut new_self = self.clone();
+        for i in 0..self.children.len() {
+            let child = &new_self.children[i];
             println!("Current index: {}", child.index);
             if child.is_direct_parent(potential_child) {
                 println!("direct parent");
-                let mut new_self = self.clone();
+                new_self.children[i].children.push(potential_child.clone());
                 println!("new self: {:?}", new_self);
-                new_self.children.push(potential_child.clone());
-                return Some(new_self);
+                return new_self;
             } else if child.is_parent(potential_child) {
                 println!("is parent");
-                return child.add_child(potential_child);
+                new_self.children[i] = child.add_child(potential_child);
+                return new_self;
             }
         }
-        None
-
-        // let mut building_node = children[0].clone();
-        // println!("Current index: {}", children[0].index);
-        // for i in 1..children.len() {
-        //     println!("Current index: {}", children[i].index);
-        //     if building_node.is_parent(&children[i]) {
-        //         println!("is parent");
-        //         building_node.children.push(children[i].clone());
-        //     } else {
-        //         println!("aint a parent");
-        //         graph.insert(building_node.clone());
-        //         building_node = children[i].clone();
-        //     }
-        // }
-        // self.children.push(node.clone());
+        println!("No direct parent found, adding to deepest depth");
+        new_self.children.push(potential_child.clone());
+        println!("new self: {:?}", new_self);
+        new_self
     }
 
     /// Converts the `Node` into a human readable formatted string which
