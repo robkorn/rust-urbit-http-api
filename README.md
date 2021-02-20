@@ -156,7 +156,7 @@ fn main() {
 }
 ```
 
-### Subscription Example
+### Graph Store Subscription Example
 
 This example shows how to create, interact with, and delete a `Subscription`. In this scenario we desire to read all new updates from Graph Store via our `Subscription` for 10 seconds, and then perform cleanup.
 
@@ -211,7 +211,7 @@ fn main() {
 
 ### Urbit Chat Messaging Example
 
-This example displays how to connect to a ship and send a message to an Urbit chat.
+This example displays how to connect to a ship and send a message to an Urbit chat using the `Chat` struct interface.
 
 ```rust
 // Import the `ShipInterface` struct
@@ -239,6 +239,47 @@ fn main() {
         .send_message("~zod", "test-93", &message);
 
     // Cleanup/delete the `Channel` once finished
+    channel.delete_channel();
+}
+```
+
+### Urbit Chat Subscription Example
+
+This example shows how to utilize the higher-level `Chat` interface to subscribe to a chat and read all of the messages being posted in said chat.
+
+```rust
+use std::thread;
+use std::time::Duration;
+use urbit_http_api::ShipInterface;
+
+fn main() {
+    // Create a new `ShipInterface` for a local ~zod ship
+    let mut ship_interface =
+        ShipInterface::new("http://0.0.0.0:8080", "lidlut-tabwed-pillex-ridrup").unwrap();
+    // Create a `Channel`
+    let mut channel = ship_interface.create_channel().unwrap();
+    // Subscribe to a specific chat, and obtain a `Receiver` back which contains a stream of messages from the chat
+    let chat_receiver = channel
+        .chat()
+        .subscribe_to_chat("~mocrux-nomdep", "test-93")
+        .unwrap();
+
+    // Create a loop that iterates 10 times
+    for _ in 0..10 {
+        // If a message has been posted to the chat, unwrap it and acquire the `AuthoredMessage`
+        if let Ok(authored_message) = chat_receiver.try_recv() {
+            // Pretty print the author ship @p and the message contents
+            println!(
+                "~{}:{}",
+                authored_message.author,
+                authored_message.message.to_formatted_string()
+            );
+        }
+        // Wait for 1 second before checking again
+        thread::sleep(Duration::new(1, 0));
+    }
+
+    // Delete the channel
     channel.delete_channel();
 }
 ```
