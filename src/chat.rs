@@ -104,8 +104,6 @@ impl<'a> Chat<'a> {
                 .create_new_subscription("graph-store", "/updates")
                 .ok();
             loop {
-                // Pause for half a second
-                thread::sleep(Duration::new(0, 500000000));
                 channel.parse_event_messages();
                 let res_graph_updates = &mut channel.find_subscription("graph-store", "/updates");
                 if let Some(graph_updates) = res_graph_updates {
@@ -137,6 +135,8 @@ impl<'a> Chat<'a> {
                         }
                     }
                 }
+                // Pause for half a second
+                thread::sleep(Duration::new(0, 500000000));
             }
         });
         Ok(r)
@@ -146,9 +146,9 @@ impl<'a> Chat<'a> {
     /// specified
     fn check_resource_json(chat_ship: &str, chat_name: &str, resource_json: &JsonValue) -> bool {
         let resource = resource_json["graph-update"]["add-nodes"]["resource"].clone();
-        let chat_name = format!("{}", resource["name"]);
-        let chat_ship = format!("~{}", resource["ship"]);
-        if chat_name == chat_name && chat_ship == chat_ship {
+        let json_chat_name = format!("{}", resource["name"]);
+        let json_chat_ship = format!("~{}", resource["ship"]);
+        if json_chat_name == chat_name && json_chat_ship == chat_ship {
             return true;
         }
         false
