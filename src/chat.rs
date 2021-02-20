@@ -1,5 +1,9 @@
 use crate::graph::NodeContents;
-use crate::{Channel, Result, UrbitAPIError};
+use crate::{Channel, Node, Result, UrbitAPIError};
+use crossbeam::channel::{unbounded, Receiver};
+use json::JsonValue;
+use std::thread;
+use std::time::Duration;
 
 /// A struct that provides an interface for interacting with Urbit chats
 pub struct Chat<'a> {
@@ -71,5 +75,75 @@ impl<'a> Chat<'a> {
         }
 
         Ok(export_log)
+    }
+
+    pub fn subscribe_to_chat(
+        &mut self,
+        chat_ship: &str,
+        chat_name: &str,
+    ) -> Result<Receiver<AuthoredMessage>> {
+        let chat_ship = chat_ship.to_string();
+        let chat_name = chat_name.to_string();
+        // Create sender/receiver
+        let (s, r) = unbounded();
+        // Creating a new Ship Interface Channel to pass into the new thread
+        // to be used to communicate with the Urbit ship
+        let mut new_channel = self.channel.ship_interface.create_channel()?;
+
+        thread::spawn(move || {
+            // Infinitely watch for new graph store updates
+            let channel = &mut new_channel;
+            channel
+                .create_new_subscription("graph-store", "/updates")
+                .ok();
+            loop {
+                // Pause for half a second
+                thread::sleep(Duration::new(0, 500000000));
+                channel.parse_event_messages();
+                let res_graph_updates = &mut channel.find_subscription("graph-store", "/updates");
+                if let Some(graph_updates) = res_graph_updates {
+                    // Read all of the current SSE messages to find if any are for the chat
+                    // we are looking for.
+                    loop {
+                        let pop_res = graph_updates.pop_message();
+                        // Acquire the message
+                        if let Some(mess) = &pop_res {
+                            // Parse it to json
+                            if let Ok(json) = json::parse(mess) {
+                                // If the graph-store node update is not for the correct chat
+                                // then continue to next message.
+                                if !Self::check_resource_json(&chat_ship, &chat_name, &json) {
+                                    continue;
+                                }
+                                // Otherwise, parse json to a `Node`
+                                if let Ok(node) = Node::from_graph_update_json(&json) {
+                                    // Parse it as an `AuthoredMessage`
+                                    let authored_message =
+                                        AuthoredMessage::new(node.author, node.contents);
+                                    let _ = s.send(authored_message);
+                                }
+                            }
+                        }
+                        // If no messages left, stop
+                        if let None = &pop_res {
+                            break;
+                        }
+                    }
+                }
+            }
+        });
+        Ok(r)
+    }
+
+    /// Checks whether the resource json matches the chat_name & chat_ship
+    /// specified
+    fn check_resource_json(chat_ship: &str, chat_name: &str, resource_json: &JsonValue) -> bool {
+        let resource = resource_json["graph-update"]["add-nodes"]["resource"].clone();
+        let chat_name = format!("{}", resource["name"]);
+        let chat_ship = format!("~{}", resource["ship"]);
+        if chat_name == chat_name && chat_ship == chat_ship {
+            return true;
+        }
+        false
     }
 }
