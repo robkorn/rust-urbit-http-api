@@ -11,9 +11,6 @@ use regex::Regex;
 pub struct Graph {
     /// List of nodes structured as a graph with children
     pub nodes: Vec<Node>,
-    // /// List of all nodes in the graph in a flat list with all
-    // /// children being exposed on the top level.
-    // node_flat_list: Vec<Node>,
 }
 
 /// Struct which represents a node in a graph in Graph Store
@@ -78,24 +75,26 @@ impl Graph {
             childless_nodes.push(processed_node);
         }
 
-        // Insert all of the childless nodes into the graph.
-        // Places them under the correct parent as required.
+        // Create a placeholder node that accumulates all of the children
+        // before being added to the graph
         let mut building_node = childless_nodes[0].clone();
-        // println!("Current index: {}", childless_nodes[0].index);
+        // Insert all of the childless nodes into the graph
+        // under the correct parent.
         for i in 1..childless_nodes.len() {
-            // println!("Current index: {}", childless_nodes[i].index);
             if building_node.is_parent(&childless_nodes[i]) {
-                // building_node.children.push(childless_nodes[i].clone());
                 // Add the child into the deepest depth possible and update building_node
                 building_node = building_node.add_child(&childless_nodes[i]);
             } else {
+                // Insert the finished `building_node` into the graph
                 graph.insert(building_node.clone());
                 building_node = childless_nodes[i].clone();
             }
         }
-        // Add the final building_node
+        // Add the final created `building_node` from the last
+        // iteration of the for loop.
         graph.insert(building_node.clone());
 
+        // Return the finished graph
         Ok(graph)
     }
 
