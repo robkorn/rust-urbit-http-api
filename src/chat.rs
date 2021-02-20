@@ -77,6 +77,13 @@ impl<'a> Chat<'a> {
         Ok(export_log)
     }
 
+    /// Subscribe to and watch for messages for a specific chat. This method returns a `Receiver` with the
+    /// `AuthoredMessage`s that are posted to the chat after subscribing. Simply call `receiver.try_recv()`
+    /// to read the next `AuthoredMessage` if one has been posted in the specified chat.
+    ///
+    /// Technical Note: This method actually creates a new `Channel` with your Urbit Ship, and spawns a new unix thread
+    /// locally that processes all messages on said channel. This is required due to borrowing mechanisms in Rust, however
+    /// on the plus side this makes it potentially more performant by each subscription having it's own unix thread.
     pub fn subscribe_to_chat(
         &mut self,
         chat_ship: &str,
