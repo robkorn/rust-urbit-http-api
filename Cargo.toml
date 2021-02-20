@@ -6,7 +6,7 @@ edition = "2018"
 description = "Wraps the Urbit ship http api exposing it as an easy-to-use Rust crate."
 repository = "https://github.com/robkorn/rust-urbit-http-api"
 license = "MIT"
-keywords = ["http", "urbit", "webhook"]
+keywords = ["urbit", "http", "ship", "airlock", "library"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
