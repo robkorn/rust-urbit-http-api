@@ -176,27 +176,20 @@ impl Node {
     }
 
     /// Creates a copy of self and searches through the children to find
-    /// the deepest depth which the `potential_child` can be placed.
-    pub fn add_child(&self, potential_child: &Node) -> Node {
-        println!("Potential Child: {}", potential_child.index);
+    /// the deepest depth which the `new_child` can be placed.
+    pub fn add_child(&self, new_child: &Node) -> Node {
         let mut new_self = self.clone();
         for i in 0..self.children.len() {
             let child = &new_self.children[i];
-            println!("Current index: {}", child.index);
-            if child.is_direct_parent(potential_child) {
-                println!("direct parent");
-                new_self.children[i].children.push(potential_child.clone());
-                println!("new self: {:?}", new_self);
+            if child.is_direct_parent(new_child) {
+                new_self.children[i].children.push(new_child.clone());
                 return new_self;
-            } else if child.is_parent(potential_child) {
-                println!("is parent");
-                new_self.children[i] = child.add_child(potential_child);
+            } else if child.is_parent(new_child) {
+                new_self.children[i] = child.add_child(new_child);
                 return new_self;
             }
         }
-        println!("No direct parent found, adding to deepest depth");
-        new_self.children.push(potential_child.clone());
-        println!("new self: {:?}", new_self);
+        new_self.children.push(new_child.clone());
         new_self
     }
 
