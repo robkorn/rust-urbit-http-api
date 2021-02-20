@@ -71,7 +71,7 @@ impl Graph {
                 + r#"null}"#;
             let json = json::parse(&node_string)
                 .map_err(|_| UrbitAPIError::FailedToCreateGraphNodeFromJSON)?;
-            let processed_node = Node::from_json(&json)?;
+            let processed_node = Node::from_json_childless(&json)?;
             childless_nodes.push(processed_node);
         }
 
@@ -244,12 +244,12 @@ impl Node {
         let inner_json = json::parse(&inner_string)
             .map_err(|_| UrbitAPIError::FailedToCreateGraphNodeFromJSON)?;
 
-        Self::from_json(&inner_json)
+        Self::from_json_childless(&inner_json)
     }
 
     /// Convert from straight node `JsonValue` to `Node`
     /// Defaults to no children.
-    pub fn from_json(json: &JsonValue) -> Result<Node> {
+    fn from_json_childless(json: &JsonValue) -> Result<Node> {
         // Process all of the json fields
         let _children = json["children"].clone();
         let post_json = json["post"].clone();
