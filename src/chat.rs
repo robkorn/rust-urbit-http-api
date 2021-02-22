@@ -17,19 +17,21 @@ pub struct Chat<'a> {
 // #[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub type Message = NodeContents;
 
-/// A `Message` with the author @p also included
+/// A `Message` with the author @p, and post time also included
 #[derive(Clone, Debug)]
 pub struct AuthoredMessage {
     pub author: String,
     pub message: Message,
+    pub timestamp: String,
 }
 
 impl AuthoredMessage {
     /// Create a new `AuthoredMessage`
-    pub fn new(author: String, message: Message) -> Self {
+    pub fn new(author: &str, message: &Message, timestamp: &str) -> Self {
         AuthoredMessage {
-            author: author,
-            message: message,
+            author: author.to_string(),
+            message: message.clone(),
+            timestamp: timestamp.to_string(),
         }
     }
 }
@@ -71,7 +73,8 @@ impl<'a> Chat<'a> {
 
         for node in nodes {
             if !node.contents.is_empty() {
-                let authored_message = AuthoredMessage::new(node.author, node.contents);
+                let authored_message =
+                    AuthoredMessage::new(&node.author, &node.contents, &node.time_sent_formatted());
                 authored_messages.push(authored_message);
             }
         }
@@ -149,8 +152,11 @@ impl<'a> Chat<'a> {
                                 // Otherwise, parse json to a `Node`
                                 if let Ok(node) = Node::from_graph_update_json(&json) {
                                     // Parse it as an `AuthoredMessage`
-                                    let authored_message =
-                                        AuthoredMessage::new(node.author, node.contents);
+                                    let authored_message = AuthoredMessage::new(
+                                        &node.author,
+                                        &node.contents,
+                                        &node.time_sent_formatted(),
+                                    );
                                     let _ = s.send(authored_message);
                                 }
                             }

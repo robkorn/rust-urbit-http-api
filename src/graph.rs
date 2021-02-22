@@ -192,14 +192,19 @@ impl Node {
         new_self.children.push(new_child.clone());
         new_self
     }
-
-    /// Converts the `Node` into a human readable formatted string which
-    /// includes the author, date, and node contents.
-    pub fn to_formatted_string(&self) -> String {
+    /// Formats the `time_sent` field to be human readable date-time in UTC
+    pub fn time_sent_formatted(&self) -> String {
         let unix_time = self.time_sent as i64 / 1000;
         let date_time: DateTime<Utc> =
             DateTime::from_utc(NaiveDateTime::from_timestamp(unix_time, 0), Utc);
         let new_date = date_time.format("%Y-%m-%d %H:%M:%S");
+        format!("{}", new_date)
+    }
+
+    /// Converts the `Node` into a human readable formatted string which
+    /// includes the author, date, and node contents.
+    pub fn to_formatted_string(&self) -> String {
+        let new_date = self.time_sent_formatted();
 
         let content = self.contents.to_formatted_string();
         format!("{} - ~{}:{}", new_date, self.author, content)
