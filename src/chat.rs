@@ -60,13 +60,29 @@ impl<'a> Chat<'a> {
         }
     }
 
-    /// Extracts a Chat's messages automatically into a list of `String`s
-    pub fn export_chat_log(&mut self, chat_ship: &str, chat_name: &str) -> Result<Vec<String>> {
-        let chat_graph = &self.channel.graph_store().get_graph(chat_ship, chat_name)?;
-        let mut export_log = vec![];
+    /// Extracts a Chat's messages as `AuthoredMessage`s
+    pub fn export_authored_messages(
+        &mut self,
+        chat_ship: &str,
+        chat_name: &str,
+    ) -> Result<Vec<AuthoredMessage>> {
+        let mut authored_messages = vec![];
+        let nodes = self.export_chat_nodes(chat_ship, chat_name)?;
 
-        let mut nodes = chat_graph.clone().nodes;
-        nodes.sort_by(|a, b| a.time_sent.cmp(&b.time_sent));
+        for node in nodes {
+            if !node.contents.is_empty() {
+                let authored_message = AuthoredMessage::new(node.author, node.contents);
+                authored_messages.push(authored_message);
+            }
+        }
+
+        Ok(authored_messages)
+    }
+
+    /// Extracts a Chat's messages automatically into a list of formatted `String`s
+    pub fn export_chat_log(&mut self, chat_ship: &str, chat_name: &str) -> Result<Vec<String>> {
+        let mut export_log = vec![];
+        let nodes = self.export_chat_nodes(chat_ship, chat_name)?;
 
         for node in nodes {
             if !node.contents.is_empty() {
@@ -75,6 +91,16 @@ impl<'a> Chat<'a> {
         }
 
         Ok(export_log)
+    }
+
+    /// Extracts a Chat's nodes
+    fn export_chat_nodes(&mut self, chat_ship: &str, chat_name: &str) -> Result<Vec<Node>> {
+        let chat_graph = &self.channel.graph_store().get_graph(chat_ship, chat_name)?;
+
+        let mut nodes = chat_graph.clone().nodes;
+        nodes.sort_by(|a, b| a.time_sent.cmp(&b.time_sent));
+
+        Ok(nodes)
     }
 
     /// Subscribe to and watch for messages for a specific chat. This method returns a `Receiver` with the
