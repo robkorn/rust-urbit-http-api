@@ -8,6 +8,7 @@ pub struct Notebook<'a> {
 }
 
 /// A struct that represents a Note from a Notebook
+#[derive(Clone, Debug)]
 pub struct Note {
     pub author: String,
     pub time_sent: String,
