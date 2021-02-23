@@ -14,7 +14,6 @@ pub struct Chat<'a> {
 /// `Message` provides methods to build a message in chunks, thereby allowing you
 /// to add content which needs to be parsed, for example links @p mentions.
 /// It is technically an alias for the `NodeContents` struct.
-// #[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub type Message = NodeContents;
 
 /// A `Message` with the author @p, and post time also included
@@ -33,6 +32,11 @@ impl AuthoredMessage {
             message: message.clone(),
             time_sent: time_sent.to_string(),
         }
+    }
+
+    /// Parses a `Node` into `Self`
+    pub fn from_node(node: &Node) -> Self {
+        Self::new(&node.author, &node.contents, &node.time_sent_formatted())
     }
 }
 
@@ -73,8 +77,7 @@ impl<'a> Chat<'a> {
 
         for node in nodes {
             if !node.contents.is_empty() {
-                let authored_message =
-                    AuthoredMessage::new(&node.author, &node.contents, &node.time_sent_formatted());
+                let authored_message = AuthoredMessage::from_node(&node);
                 authored_messages.push(authored_message);
             }
         }
@@ -152,11 +155,7 @@ impl<'a> Chat<'a> {
                                 // Otherwise, parse json to a `Node`
                                 if let Ok(node) = Node::from_graph_update_json_childless(&json) {
                                     // Parse it as an `AuthoredMessage`
-                                    let authored_message = AuthoredMessage::new(
-                                        &node.author,
-                                        &node.contents,
-                                        &node.time_sent_formatted(),
-                                    );
+                                    let authored_message = AuthoredMessage::from_node(&node);
                                     let _ = s.send(authored_message);
                                 }
                             }
