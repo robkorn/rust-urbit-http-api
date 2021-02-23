@@ -7,12 +7,84 @@ pub struct Notebook<'a> {
     pub channel: &'a mut Channel,
 }
 
-/// A struct that represents a Note from a notebook
+/// A struct that represents a Note from a Notebook
 pub struct Note {
     pub author: String,
-    pub timestamp: String,
+    pub time_sent: String,
     pub content: NodeContents,
     pub comments: Vec<Comment>,
 }
 
-impl<'a> Notebook<'a> {}
+impl Note {
+    /// Create a new `Note`
+    pub fn new(
+        author: &str,
+        time_sent: &str,
+        content: &NodeContents,
+        comments: &Vec<Comment>,
+    ) -> Note {
+        Note {
+            author: author.to_string(),
+            time_sent: time_sent.to_string(),
+            content: content.clone(),
+            comments: comments.clone(),
+        }
+    }
+
+    /// Convert from a `Node` to a `Note`
+    pub fn from_node(node: &Node) -> Result<Note> {
+        let mut comments: Vec<Comment> = vec![];
+        // Find the comments node which has an index tail of `2`
+        let comments_node = node
+            .children
+            .iter()
+            .find(|c| c.index_tail() == "2")
+            .ok_or(UrbitAPIError::InvalidNoteGraphNode(node.to_json().dump()))?;
+        // Find the note post content node which has an index tail of `1`
+        let content_node = node
+            .children
+            .iter()
+            .find(|c| c.index_tail() == "1")
+            .ok_or(UrbitAPIError::InvalidNoteGraphNode(node.to_json().dump()))?;
+
+        println!("Content_node: {}", content_node.to_json().dump());
+        println!("comments_node: {}", comments_node.to_json().dump());
+
+        for comment_node in &comments_node.children {
+            comments.push(Comment::from_node(comment_node));
+        }
+
+        // Acquire the final revision of the notebook content, which is the last child of the content_node
+        let contents = content_node.children[content_node.children.len() - 1]
+            .contents
+            .clone();
+        let author = node.author.clone();
+        let time_sent = node.time_sent_formatted();
+
+        // Create the note
+        Ok(Note::new(&author, &time_sent, &contents, &comments))
+    }
+}
+
+impl<'a> Notebook<'a> {
+    /// Extracts a Notebook's graph from the connected ship and parses it into a vector of `Note`s
+    pub fn export_notebook(
+        &mut self,
+        notebook_ship: &str,
+        notebook_name: &str,
+    ) -> Result<Vec<Note>> {
+        let graph = &self
+            .channel
+            .graph_store()
+            .get_graph(notebook_ship, notebook_name)?;
+
+        // Parse each top level node (Note) in the notebook graph
+        let mut notes = vec![];
+        for node in &graph.nodes {
+            let note = Note::from_node(node)?;
+            notes.push(note);
+        }
+
+        Ok(notes)
+    }
+}

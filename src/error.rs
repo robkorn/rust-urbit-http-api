@@ -29,6 +29,8 @@ pub enum UrbitAPIError {
     FailedToCreateGraphNodeFromJSON,
     #[error("Failed to insert a Node struct into a Graph because of the index.")]
     FailedToInsertGraphNode,
+    #[error("The following graph node is not a valid Notebook Note node {0}")]
+    InvalidNoteGraphNode(String),
     #[error("{0}")]
     Other(String),
     #[error(transparent)]

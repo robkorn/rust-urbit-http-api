@@ -10,7 +10,7 @@ pub struct Chat<'a> {
     pub channel: &'a mut Channel,
 }
 
-/// A struct that represents a message that is to be sent to an Urbit chat.
+/// A struct that represents a message that is to be submitted to Urbit.
 /// `Message` provides methods to build a message in chunks, thereby allowing you
 /// to add content which needs to be parsed, for example links @p mentions.
 /// It is technically an alias for the `NodeContents` struct.
