@@ -22,16 +22,16 @@ pub type Message = NodeContents;
 pub struct AuthoredMessage {
     pub author: String,
     pub message: Message,
-    pub timestamp: String,
+    pub time_sent: String,
 }
 
 impl AuthoredMessage {
     /// Create a new `AuthoredMessage`
-    pub fn new(author: &str, message: &Message, timestamp: &str) -> Self {
+    pub fn new(author: &str, message: &Message, time_sent: &str) -> Self {
         AuthoredMessage {
             author: author.to_string(),
             message: message.clone(),
-            timestamp: timestamp.to_string(),
+            time_sent: time_sent.to_string(),
         }
     }
 }
