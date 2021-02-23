@@ -1,11 +1,13 @@
 pub mod channel;
 pub mod chat;
+pub mod comment;
 pub mod error;
 pub mod graph;
 pub mod graphstore;
 pub mod helper;
 pub mod interface;
 pub mod local_config;
+pub mod notebook;
 pub mod subscription;
 
 pub use channel::Channel;
