@@ -126,6 +126,12 @@ impl Node {
         }
     }
 
+    /// Extract the node's final section (after the last `/`) of the index
+    pub fn index_tail(&self) -> String {
+        let split_index: Vec<&str> = self.index.split("/").collect();
+        split_index[split_index.len() - 1].to_string()
+    }
+
     /// Extract the `Node`'s parent's index (if parent exists)
     pub fn parent_index(&self) -> Option<String> {
         let rev_index = self.index.chars().rev().collect::<String>();
