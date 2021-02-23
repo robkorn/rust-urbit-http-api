@@ -20,16 +20,16 @@ pub type Message = NodeContents;
 #[derive(Clone, Debug)]
 pub struct AuthoredMessage {
     pub author: String,
-    pub message: Message,
+    pub contents: Message,
     pub time_sent: String,
 }
 
 impl AuthoredMessage {
     /// Create a new `AuthoredMessage`
-    pub fn new(author: &str, message: &Message, time_sent: &str) -> Self {
+    pub fn new(author: &str, contents: &Message, time_sent: &str) -> Self {
         AuthoredMessage {
             author: author.to_string(),
-            message: message.clone(),
+            contents: contents.clone(),
             time_sent: time_sent.to_string(),
         }
     }
@@ -37,6 +37,13 @@ impl AuthoredMessage {
     /// Parses a `Node` into `Self`
     pub fn from_node(node: &Node) -> Self {
         Self::new(&node.author, &node.contents, &node.time_sent_formatted())
+    }
+
+    /// Converts self into a human readable formatted string which
+    /// includes the author, date, and node contents.
+    pub fn to_formatted_string(&self) -> String {
+        let content = self.contents.to_formatted_string();
+        format!("{} - ~{}:{}", self.time_sent, self.author, content)
     }
 }
 
@@ -66,6 +73,20 @@ impl<'a> Chat<'a> {
         }
     }
 
+    /// Extracts a Chat's messages automatically into a list of formatted `String`s
+    pub fn export_chat_log(&mut self, chat_ship: &str, chat_name: &str) -> Result<Vec<String>> {
+        let mut export_log = vec![];
+        let authored_messages = self.export_authored_messages(chat_ship, chat_name)?;
+
+        for am in authored_messages {
+            if !am.contents.is_empty() {
+                export_log.push(am.to_formatted_string());
+            }
+        }
+
+        Ok(export_log)
+    }
+
     /// Extracts a Chat's messages as `AuthoredMessage`s
     pub fn export_authored_messages(
         &mut self,
@@ -83,20 +104,6 @@ impl<'a> Chat<'a> {
         }
 
         Ok(authored_messages)
-    }
-
-    /// Extracts a Chat's messages automatically into a list of formatted `String`s
-    pub fn export_chat_log(&mut self, chat_ship: &str, chat_name: &str) -> Result<Vec<String>> {
-        let mut export_log = vec![];
-        let nodes = self.export_chat_nodes(chat_ship, chat_name)?;
-
-        for node in nodes {
-            if !node.contents.is_empty() {
-                export_log.push(node.to_formatted_string());
-            }
-        }
-
-        Ok(export_log)
     }
 
     /// Extracts a Chat's nodes

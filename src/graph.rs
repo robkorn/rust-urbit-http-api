@@ -201,15 +201,6 @@ impl Node {
         format!("{}", new_date)
     }
 
-    /// Converts the `Node` into a human readable formatted string which
-    /// includes the author, date, and node contents.
-    pub fn to_formatted_string(&self) -> String {
-        let new_date = self.time_sent_formatted();
-
-        let content = self.contents.to_formatted_string();
-        format!("{} - ~{}:{}", new_date, self.author, content)
-    }
-
     /// Converts to `JsonValue`
     pub fn to_json(&self) -> JsonValue {
         let mut node_json = object!();
