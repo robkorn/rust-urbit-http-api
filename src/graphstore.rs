@@ -48,7 +48,7 @@ impl<'a> GraphStore<'a> {
                     "ship": resource_ship,
                     "name": resource_name
                 },
-            "nodes": node.to_json(None)
+            "nodes": node.to_json()
             }
         };
 

@@ -94,7 +94,7 @@ impl Graph {
 
     // Converts to `JsonValue`
     pub fn to_json(&self) -> JsonValue {
-        let nodes_json: Vec<JsonValue> = self.nodes.iter().map(|n| n.to_json(None)).collect();
+        let nodes_json: Vec<JsonValue> = self.nodes.iter().map(|n| n.to_json()).collect();
         object! {
                             "graph-update": {
                                 "add-graph": {
@@ -205,13 +205,13 @@ impl Node {
     }
 
     /// Converts to `JsonValue`
-    pub fn to_json(&self, children: Option<JsonValue>) -> JsonValue {
+    pub fn to_json(&self) -> JsonValue {
         let mut node_json = object!();
 
-        let final_children = match children {
-            Some(json) => json,
-            None => JsonValue::Null,
-        };
+        let mut children = vec![];
+        for child in &self.children {
+            children.push(child.to_json());
+        }
 
         node_json[self.index.clone()] = object! {
                         "post": {
@@ -222,7 +222,7 @@ impl Node {
                             "hash": null,
                             "signatures": []
                         },
-                        "children": final_children
+                        "children": children
         };
         node_json
     }
