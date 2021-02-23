@@ -2,6 +2,7 @@ use crate::chat::Chat;
 use crate::error::{Result, UrbitAPIError};
 use crate::graphstore::GraphStore;
 use crate::interface::ShipInterface;
+use crate::notebook::Notebook;
 use crate::subscription::{CreationID, Subscription};
 use eventsource_threaded::{EventSource, ReceiverSource};
 use json::{object, JsonValue};
@@ -221,6 +222,12 @@ impl Channel {
     /// with chats on Urbit
     pub fn chat(&mut self) -> Chat {
         Chat { channel: self }
+    }
+
+    /// Create a `Notebook` struct which exposes an interface for interacting
+    /// with notebooks on Urbit
+    pub fn notebook(&mut self) -> Notebook {
+        Notebook { channel: self }
     }
 
     /// Create a `GraphStore` struct which exposes an interface for interacting
