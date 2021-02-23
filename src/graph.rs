@@ -42,12 +42,6 @@ impl Graph {
         self.nodes.push(node);
     }
 
-    /// Attempts to find the parent of a given node within `self`
-    /// with a naive linear search.
-    pub fn find_node_parent(&self, child: &Node) -> Option<&Node> {
-        self.nodes.iter().find(|n| n.is_direct_parent(&child))
-    }
-
     /// Convert from graph `JsonValue` to `Graph`
     pub fn from_json(graph_json: JsonValue) -> Result<Graph> {
         // Create a new empty graph to insert nodes into
@@ -234,9 +228,8 @@ impl Node {
     }
 
     /// Convert from node `JsonValue` which is wrapped up in a few wrapper fields
-    /// into a `Node`.
-    /// Defaults to no children.
-    pub fn from_graph_update_json(wrapped_json: &JsonValue) -> Result<Node> {
+    /// into a `Node` with no children.
+    pub fn from_graph_update_json_childless(wrapped_json: &JsonValue) -> Result<Node> {
         let dumped = wrapped_json["graph-update"]["add-nodes"]["nodes"].dump();
         let split: Vec<&str> = dumped.splitn(2, ":").collect();
         if split.len() <= 1 {

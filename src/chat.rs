@@ -150,7 +150,7 @@ impl<'a> Chat<'a> {
                                     continue;
                                 }
                                 // Otherwise, parse json to a `Node`
-                                if let Ok(node) = Node::from_graph_update_json(&json) {
+                                if let Ok(node) = Node::from_graph_update_json_childless(&json) {
                                     // Parse it as an `AuthoredMessage`
                                     let authored_message = AuthoredMessage::new(
                                         &node.author,
