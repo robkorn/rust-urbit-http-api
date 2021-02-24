@@ -14,6 +14,7 @@ pub struct Note {
     pub author: String,
     pub time_sent: String,
     pub content: NodeContents,
+    // pub old_revisions_content: Vec<NodeContents>
     pub comments: Vec<Comment>,
 }
 
@@ -56,7 +57,10 @@ impl Note {
         }
 
         // Acquire the final revision of the notebook content, which is the last child of the content_node
-        let contents = content_node.children[0].contents.clone();
+        println!("Note children: {:?}", content_node.children);
+        let contents = content_node.children[content_node.children.len() - 1]
+            .contents
+            .clone();
         // Acquire the title from first item in the contents of the note
         let title = format!("{}", contents.content_list[0]["text"]);
         // Recreate the note contents with the title removed
