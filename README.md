@@ -115,6 +115,9 @@ pub fn graph_store(&mut self) -> GraphStore;
 /// Exposes an interface for interacting with Urbit chats.
 pub fn chat(&mut self) -> Chat;
 
+/// Exposes an interface for interacting with Urbit notebooks.
+pub fn notebook(&mute self) -> Notebook;
+
 ```
 
 ### Subscription

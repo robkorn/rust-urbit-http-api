@@ -1,5 +1,4 @@
 use crate::chat::AuthoredMessage;
-use crate::graph::{Node, NodeContents};
 
 /// A struct representing a comment either on a `Note` or on a collections `Link`.
 /// Matches the `AuthoredMessage` struct, and as such is a type alias for it.
