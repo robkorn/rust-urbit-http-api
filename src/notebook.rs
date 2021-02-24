@@ -54,7 +54,6 @@ impl Note {
             .ok_or(UrbitAPIError::InvalidNoteGraphNode(node.to_json().dump()))?;
 
         for comment_node in &comments_node.children {
-            println!("comment_node: {:?}", comment_node);
             for child in &comment_node.children {
                 comments.push(Comment::from_node(child));
             }
