@@ -45,7 +45,7 @@ impl Note {
             .iter()
             .find(|c| c.index_tail() == "2")
             .ok_or(UrbitAPIError::InvalidNoteGraphNode(node.to_json().dump()))?;
-        // Find the note post content node which has an index tail of `1`
+        // Find the note content node (which holds all revisions as children) which has an index tail of `1`
         let content_node = node
             .children
             .iter()
@@ -56,15 +56,19 @@ impl Note {
             comments.push(Comment::from_node(comment_node));
         }
 
-        // Acquire the final revision of the notebook content, which is the last child of the content_node
+        // Find the latest revision of the notebook content
         println!("Note children: {:?}", content_node.children);
-        let contents = content_node.children[content_node.children.len() - 1]
-            .contents
-            .clone();
-        // Acquire the title from first item in the contents of the note
-        let title = format!("{}", contents.content_list[0]["text"]);
-        // Recreate the note contents with the title removed
-        let contents = NodeContents::from_json(contents.content_list[1..].to_vec());
+        let mut latest_revision_node = content_node.children[0].clone();
+        for revision_node in &content_node.children {
+            if revision_node.index_tail() > latest_revision_node.index_tail() {
+                latest_revision_node = revision_node.clone()
+            }
+        }
+        // Acquire the title, which is the first item in the revision node of the note
+        let title = format!("{}", latest_revision_node.contents.content_list[0]["text"]);
+        // Recreate the revision node contents with the title removed
+        let contents =
+            NodeContents::from_json(latest_revision_node.contents.content_list[1..].to_vec());
         let author = node.author.clone();
         let time_sent = node.time_sent_formatted();
 
