@@ -56,9 +56,7 @@ impl Note {
         }
 
         // Acquire the final revision of the notebook content, which is the last child of the content_node
-        let contents = content_node.children[content_node.children.len() - 1]
-            .contents
-            .clone();
+        let contents = content_node.children[0].contents.clone();
         // Acquire the title from first item in the contents of the note
         let title = format!("{}", contents.content_list[0]["text"]);
         // Recreate the note contents with the title removed
