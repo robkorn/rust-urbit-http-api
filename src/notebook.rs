@@ -13,7 +13,8 @@ pub struct Note {
     pub title: String,
     pub author: String,
     pub time_sent: String,
-    pub content: NodeContents,
+    /// The contents of the latest revision of the Note
+    pub contents: NodeContents,
     // pub old_revisions_content: Vec<NodeContents>
     pub comments: Vec<Comment>,
 }
@@ -24,14 +25,14 @@ impl Note {
         title: &str,
         author: &str,
         time_sent: &str,
-        content: &NodeContents,
+        contents: &NodeContents,
         comments: &Vec<Comment>,
     ) -> Note {
         Note {
             title: title.to_string(),
             author: author.to_string(),
             time_sent: time_sent.to_string(),
-            content: content.clone(),
+            contents: contents.clone(),
             comments: comments.clone(),
         }
     }
@@ -57,7 +58,6 @@ impl Note {
         }
 
         // Find the latest revision of the notebook content
-        println!("Note children: {:?}", content_node.children);
         let mut latest_revision_node = content_node.children[0].clone();
         for revision_node in &content_node.children {
             if revision_node.index_tail() > latest_revision_node.index_tail() {
@@ -74,6 +74,16 @@ impl Note {
 
         // Create the note
         Ok(Note::new(&title, &author, &time_sent, &contents, &comments))
+    }
+
+    /// Convert the contents of the latest revision of the Note to
+    /// a series of markdown `String`s
+    pub fn content_as_markdown(&self) -> Vec<String> {
+        let formatted_string = self.contents.to_formatted_string();
+        formatted_string
+            .split("\\n")
+            .map(|l| l.to_string())
+            .collect()
     }
 }
 
