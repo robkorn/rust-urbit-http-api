@@ -10,6 +10,7 @@ pub struct Notebook<'a> {
 /// A struct that represents a Note from a Notebook
 #[derive(Clone, Debug)]
 pub struct Note {
+    pub title: String,
     pub author: String,
     pub time_sent: String,
     pub content: NodeContents,
@@ -19,12 +20,14 @@ pub struct Note {
 impl Note {
     /// Create a new `Note`
     pub fn new(
+        title: &str,
         author: &str,
         time_sent: &str,
         content: &NodeContents,
         comments: &Vec<Comment>,
     ) -> Note {
         Note {
+            title: title.to_string(),
             author: author.to_string(),
             time_sent: time_sent.to_string(),
             content: content.clone(),
@@ -56,11 +59,15 @@ impl Note {
         let contents = content_node.children[content_node.children.len() - 1]
             .contents
             .clone();
+        // Acquire the title from first item in the contents of the note
+        let title = format!("{}", contents.content_list[0]["text"]);
+        // Recreate the note contents with the title removed
+        let contents = NodeContents::from_json(contents.content_list[1..].to_vec());
         let author = node.author.clone();
         let time_sent = node.time_sent_formatted();
 
         // Create the note
-        Ok(Note::new(&author, &time_sent, &contents, &comments))
+        Ok(Note::new(&title, &author, &time_sent, &contents, &comments))
     }
 }
 
