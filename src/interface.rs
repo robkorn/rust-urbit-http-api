@@ -117,6 +117,7 @@ impl ShipInterface {
 mod tests {
     use super::*;
     use crate::subscription::Subscription;
+    use json::object;
     #[test]
     // Verify that we can login to a local `~zod` dev ship.
     fn can_login() {
