@@ -202,15 +202,23 @@ impl Node {
     }
 
     /// Converts to `JsonValue`
+    /// creates a json object with one field: key = the node's full index path, value = json representation of node
     pub fn to_json(&self) -> JsonValue {
         let mut node_json = object!();
+        node_json[self.index.clone()] = self.to_json_value();
+        node_json
+    }
 
-        let mut children = vec![];
+    /// Converts to `JsonValue`
+    /// json representation of a node
+    fn to_json_value(&self) -> JsonValue {
+        
+        let mut children = object!();
         for child in &self.children {
-            children.push(child.to_json());
+            children[child.index_tail()] = child.to_json_value();
         }
 
-        node_json[self.index.clone()] = object! {
+        let result_json = object! {
                         "post": {
                             "author": self.author.clone(),
                             "index": self.index.clone(),
@@ -221,7 +229,7 @@ impl Node {
                         },
                         "children": children
         };
-        node_json
+        result_json
     }
 
     /// Convert from node `JsonValue` which is wrapped up in a few wrapper fields
