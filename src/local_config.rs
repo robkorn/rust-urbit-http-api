@@ -46,7 +46,7 @@ pub fn ship_interface_from_local_config() -> Option<ShipInterface> {
 /// data inside to create a `ShipInterface`
 pub fn ship_interface_from_config(path_to_file: &str) -> Option<ShipInterface> {
     let yaml_str = std::fs::read_to_string(path_to_file).ok()?;
-    let yaml = YamlLoader::load_from_str(&yaml_str).unwrap()[0].clone();
+    let yaml = YamlLoader::load_from_str(&yaml_str).ok()?[0].clone();
     ship_interface_from_yaml(yaml)
 }
 

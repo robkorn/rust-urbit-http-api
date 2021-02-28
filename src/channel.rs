@@ -64,7 +64,9 @@ impl Channel {
             let mut headers = HeaderMap::new();
             headers.append("cookie", ship_interface.session_auth.clone());
             // Create the receiver
-            let receiver = EventSource::new(Url::parse(&channel_url).unwrap(), headers);
+            let url_structured =
+                Url::parse(&channel_url).map_err(|_| UrbitAPIError::FailedToCreateNewChannel)?;
+            let receiver = EventSource::new(url_structured, headers);
 
             return Ok(Channel {
                 ship_interface: ship_interface,
