@@ -19,9 +19,9 @@ pub struct Note {
     pub index: String,
 }
 
-/// helper struct for analysing Notebook node indices
+/// An internal helper struct for analysing Notebook node indices
 #[derive(Clone, Debug)]
-pub struct NotebookIndex<'a> {
+struct NotebookIndex<'a> {
     pub index: &'a str,
     pub index_split: Vec<&'a str>,
 }
@@ -144,17 +144,16 @@ impl<'a> Notebook<'a> {
         Ok(notes)
     }
 
-    /// fetch a note object given an index `note_index`
-    /// `note_index` can be any valid note index (even an index of a comment on the note)
-    ///  will fetch a specific revision if passed index of one, otherwise the latest revision
-    /// (comments fetched will always be the latest revisions)
+    /// Fetch a note object given an index `note_index`. This note index can be the root index of the note
+    /// or any of the child indexes of the note. If a child index for a specific revision of the note is passed
+    /// then that revision will be fetched, otherwise latest revision is the default.
     pub fn fetch_note(
         &mut self,
         notebook_ship: &str,
         notebook_name: &str,
         note_index: &str,
     ) -> Result<Note> {
-        //check index
+        // check index
         let index = NotebookIndex::new(note_index);
         if !index.is_valid() {
             return Err(UrbitAPIError::InvalidNoteGraphNodeIndex(
@@ -162,10 +161,10 @@ impl<'a> Notebook<'a> {
             ));
         }
 
-        //root note index
+        // root note index
         let note_root_index = index.note_root_index();
 
-        //get the note root node
+        // get the note root node
         let node =
             &self
                 .channel
@@ -177,6 +176,18 @@ impl<'a> Notebook<'a> {
         };
 
         return Ok(Note::from_node(node, revision)?);
+    }
+
+    /// Fetches the latest version of a note based on providing the index of a comment on said note.
+    /// This is technically just a wrapper around `fetch_note`, but is implemented as a separate method
+    /// to prevent overloading method meaning/documentation thereby preventing confusion.
+    pub fn fetch_note_with_comment_index(
+        &mut self,
+        notebook_ship: &str,
+        notebook_name: &str,
+        comment_index: &str,
+    ) -> Result<Note> {
+        self.fetch_note(notebook_ship, notebook_name, comment_index)
     }
 
     /// find the index of the latest revision of a note given an index `note_index`
@@ -468,6 +479,7 @@ impl<'a> Notebook<'a> {
 }
 
 impl<'a> NotebookIndex<'a> {
+    /// Create a new `NotebookIndex`
     pub fn new(idx: &str) -> NotebookIndex {
         NotebookIndex {
             index: idx,
