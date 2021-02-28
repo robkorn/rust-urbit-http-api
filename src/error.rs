@@ -15,6 +15,8 @@ pub enum UrbitAPIError {
     FailedToSendChatMessage(String),
     #[error("Failed to acquire graph from Graph Store for resource {0}.")]
     FailedToGetGraph(String),
+    #[error("Failed to acquire graph node from Graph Store for resource + index {0}.")]
+    FailedToGetGraphNode(String),
     #[error("Failed to archive graph from Graph Store for resource {0}.")]
     FailedToArchiveGraph(String),
     #[error("Failed to add nodes to Graph Store for resource {0}.")]
@@ -31,6 +33,14 @@ pub enum UrbitAPIError {
     FailedToInsertGraphNode,
     #[error("The following graph node is not a valid Notebook Note node {0}")]
     InvalidNoteGraphNode(String),
+    #[error("The following graph node index is not a valid Notebook Note node index {0}")]
+    InvalidNoteGraphNodeIndex(String),
+    #[error("Failed to create a Notebook Note from these nodes {0}")]
+    FailedToCreateNote(String),
+    #[error("Failed to create a Notebook Comment from these nodes {0}")]
+    FailedToCreateComment(String),
+    #[error("The following graph node index is not a valid Notebook Comment node index {0}")]
+    InvalidCommentGraphNodeIndex(String),
     #[error("{0}")]
     Other(String),
     #[error(transparent)]

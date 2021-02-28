@@ -1,8 +1,7 @@
 use crate::graph::{Graph, Node, NodeContents};
-use crate::helper::get_current_da_time;
+use crate::helper::{get_current_da_time,get_current_time,index_dec_to_ud};
 use crate::{Channel, Result, UrbitAPIError};
 use json::object;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 /// A struct which exposes Graph Store functionality
 pub struct GraphStore<'a> {
@@ -15,18 +14,30 @@ impl<'a> GraphStore<'a> {
     pub fn new_node(&self, contents: &NodeContents) -> Node {
         // Add the ~ to the ship name to be used within the post as author
         let ship = format!("~{}", self.channel.ship_interface.ship_name);
-
+        
         // The index. For chat the default is current `@da` time as atom encoding with a `/` in front.
         let index = format!("/{}", get_current_da_time());
 
         // Get the current Unix Time
-        let unix_time = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_millis() as u64;
+        let unix_time = get_current_time();
 
         Node::new(
             index,
+            ship.clone(),
+            unix_time,
+            vec![],
+            contents.clone(),
+            None,
+        )
+    }
+
+    /// Create a new Graph Store node using a specified index and creation time, and connected ship as author
+    pub fn new_node_with_index(&self, node_index: &str, unix_time: u64, contents: &NodeContents) -> Node {
+        // Add the ~ to the ship name to be used within the post as author
+        let ship = format!("~{}", self.channel.ship_interface.ship_name);
+        
+        Node::new(
+            node_index.to_string(),
             ship.clone(),
             unix_time,
             vec![],
@@ -101,13 +112,32 @@ impl<'a> GraphStore<'a> {
 
         if res.status().as_u16() == 200 {
             if let Ok(body) = res.text() {
+                
                 let graph_json = json::parse(&body).expect("Failed to parse graph json.");
                 return Graph::from_json(graph_json);
             }
         }
         return Err(UrbitAPIError::FailedToGetGraph(resource_name.to_string()));
     }
+    
+    /// Acquire a node from Graph Store
+    pub fn get_node(&mut self, resource_ship: &str, resource_name: &str, node_index: &str) -> Result<Node> {
+        let path_nodes = index_dec_to_ud(node_index);
+        let path = format!("/node/{}/{}{}", resource_ship, resource_name, &path_nodes);
+        let res = self
+            .channel
+            .ship_interface
+            .scry("graph-store", &path, "json")?;
 
+        if res.status().as_u16() == 200 {
+            if let Ok(body) = res.text() {                
+                let graph_json = json::parse(&body).expect("Failed to parse graph node json.");
+                return Node::from_graph_update_json(&graph_json);
+            }
+        }
+        return Err(UrbitAPIError::FailedToGetGraphNode(format!("/{}/{}/{}",resource_ship,resource_name, node_index)));
+    }
+    
     /// Archive a graph in Graph Store
     pub fn archive_graph(&mut self, resource_ship: &str, resource_name: &str) -> Result<String> {
         let path = format!("/archive/{}/{}", resource_ship, resource_name);
@@ -146,5 +176,5 @@ impl<'a> GraphStore<'a> {
                 resource_name.to_string(),
             ));
         }
-    }
+    }    
 }

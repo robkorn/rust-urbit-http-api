@@ -232,24 +232,6 @@ impl Node {
         result_json
     }
 
-    /// Convert from node `JsonValue` which is wrapped up in a few wrapper fields
-    /// into a `Node` with no children.
-    pub fn from_graph_update_json_childless(wrapped_json: &JsonValue) -> Result<Node> {
-        let dumped = wrapped_json["graph-update"]["add-nodes"]["nodes"].dump();
-        let split: Vec<&str> = dumped.splitn(2, ":").collect();
-        if split.len() <= 1 {
-            return Err(UrbitAPIError::FailedToCreateGraphNodeFromJSON);
-        }
-
-        let mut inner_string = split[1].to_string();
-        inner_string.remove(inner_string.len() - 1);
-
-        let inner_json = json::parse(&inner_string)
-            .map_err(|_| UrbitAPIError::FailedToCreateGraphNodeFromJSON)?;
-
-        Self::from_json_childless(&inner_json)
-    }
-
     /// Convert from straight node `JsonValue` to `Node`
     /// Defaults to no children.
     fn from_json_childless(json: &JsonValue) -> Result<Node> {
@@ -305,6 +287,92 @@ impl Node {
             children: vec![],
         })
     }
+    
+    /// Convert from node `JsonValue` which is wrapped up in a few wrapper fields
+    /// into a `Node`, with children if they exist.
+    pub fn from_graph_update_json(wrapped_json: &JsonValue) -> Result<Node> {
+        let dumped = wrapped_json["graph-update"]["add-nodes"]["nodes"].dump();
+        let split: Vec<&str> = dumped.splitn(2, ":").collect();
+        if split.len() <= 1 {
+            return Err(UrbitAPIError::FailedToCreateGraphNodeFromJSON);
+        }
+
+        let mut inner_string = split[1].to_string();
+        inner_string.remove(inner_string.len() - 1);
+
+        let inner_json = json::parse(&inner_string)
+            .map_err(|_| UrbitAPIError::FailedToCreateGraphNodeFromJSON)?;
+
+        Self::from_json(&inner_json)
+    }
+
+    /// Convert from straight node `JsonValue` to `Node`
+    pub fn from_json(json: &JsonValue) -> Result<Node> {
+        // Process all of the json fields
+        let children = json["children"].clone();
+        let post_json = json["post"].clone();
+        let index = post_json["index"]
+            .as_str()
+            .ok_or(UrbitAPIError::FailedToCreateGraphNodeFromJSON)?;
+        let author = post_json["author"]
+            .as_str()
+            .ok_or(UrbitAPIError::FailedToCreateGraphNodeFromJSON)?;
+        let time_sent = post_json["time-sent"]
+            .as_u64()
+            .ok_or(UrbitAPIError::FailedToCreateGraphNodeFromJSON)?;
+
+        // Wrap hash in an Option for null case
+        let hash = match post_json["hash"].is_null() {
+            true => None,
+            false => Some(
+                post_json["hash"]
+                    .as_str()
+                    .ok_or(UrbitAPIError::FailedToCreateGraphNodeFromJSON)?
+                    .to_string(),
+            ),
+        };
+
+        // Convert array JsonValue to vector for contents
+        let mut json_contents = vec![];
+        for content in post_json["contents"].members() {
+            json_contents.push(content.clone());
+        }
+        let contents = NodeContents::from_json(json_contents);
+
+        // Convert array JsonValue to vector for signatures
+        let mut signatures = vec![];
+        for signature in post_json["signatures"].members() {
+            signatures.push(
+                signature
+                    .as_str()
+                    .ok_or(UrbitAPIError::FailedToCreateGraphNodeFromJSON)?
+                    .to_string(),
+            );
+        }
+
+        // children
+        let mut node_children : Vec<Node> = vec![];
+        
+        if let JsonValue::Object(o) = children {
+            for (_,val) in o.iter() {
+                if let Ok(child_node) = Node::from_json(val) {
+                    node_children.push(child_node);
+                }
+            }
+        }
+
+        Ok(Node {
+            index: index.to_string(),
+            author: author.to_string(),
+            time_sent: time_sent,
+            signatures: signatures,
+            contents: contents,
+            hash: hash,
+            children: node_children,
+        })
+    }
+
+    
 }
 
 /// Methods for `NodeContents`
