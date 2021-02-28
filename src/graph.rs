@@ -212,7 +212,6 @@ impl Node {
     /// Converts to `JsonValue`
     /// json representation of a node
     fn to_json_value(&self) -> JsonValue {
-        
         let mut children = object!();
         for child in &self.children {
             children[child.index_tail()] = child.to_json_value();
@@ -287,7 +286,6 @@ impl Node {
             children: vec![],
         })
     }
-    
     /// Convert from node `JsonValue` which is wrapped up in a few wrapper fields
     /// into a `Node`, with children if they exist.
     pub fn from_graph_update_json(wrapped_json: &JsonValue) -> Result<Node> {
@@ -351,10 +349,9 @@ impl Node {
         }
 
         // children
-        let mut node_children : Vec<Node> = vec![];
-        
+        let mut node_children: Vec<Node> = vec![];
         if let JsonValue::Object(o) = children {
-            for (_,val) in o.iter() {
+            for (_, val) in o.iter() {
                 if let Ok(child_node) = Node::from_json(val) {
                     node_children.push(child_node);
                 }
@@ -371,8 +368,6 @@ impl Node {
             children: node_children,
         })
     }
-
-    
 }
 
 /// Methods for `NodeContents`

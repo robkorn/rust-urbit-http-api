@@ -22,7 +22,7 @@ pub struct AuthoredMessage {
     pub author: String,
     pub contents: Message,
     pub time_sent: String,
-    pub index: String
+    pub index: String,
 }
 
 impl AuthoredMessage {
@@ -32,13 +32,17 @@ impl AuthoredMessage {
             author: author.to_string(),
             contents: contents.clone(),
             time_sent: time_sent.to_string(),
-            index: index.to_string()
+            index: index.to_string(),
         }
     }
-    
     /// Parses a `Node` into `Self`
     pub fn from_node(node: &Node) -> Self {
-        Self::new(&node.author, &node.contents, &node.time_sent_formatted(), &node.index)
+        Self::new(
+            &node.author,
+            &node.contents,
+            &node.time_sent_formatted(),
+            &node.index,
+        )
     }
 
     /// Converts self into a human readable formatted string which
