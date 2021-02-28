@@ -16,27 +16,33 @@ pub struct Chat<'a> {
 /// It is technically an alias for the `NodeContents` struct.
 pub type Message = NodeContents;
 
-/// A `Message` with the author @p, and post time also included
+/// A `Message` with the author @p, post time and index also included
 #[derive(Clone, Debug)]
 pub struct AuthoredMessage {
     pub author: String,
     pub contents: Message,
     pub time_sent: String,
+    pub index: String,
 }
 
 impl AuthoredMessage {
     /// Create a new `AuthoredMessage`
-    pub fn new(author: &str, contents: &Message, time_sent: &str) -> Self {
+    pub fn new(author: &str, contents: &Message, time_sent: &str, index: &str) -> Self {
         AuthoredMessage {
             author: author.to_string(),
             contents: contents.clone(),
             time_sent: time_sent.to_string(),
+            index: index.to_string(),
         }
     }
-
     /// Parses a `Node` into `Self`
     pub fn from_node(node: &Node) -> Self {
-        Self::new(&node.author, &node.contents, &node.time_sent_formatted())
+        Self::new(
+            &node.author,
+            &node.contents,
+            &node.time_sent_formatted(),
+            &node.index,
+        )
     }
 
     /// Converts self into a human readable formatted string which
@@ -160,7 +166,7 @@ impl<'a> Chat<'a> {
                                     continue;
                                 }
                                 // Otherwise, parse json to a `Node`
-                                if let Ok(node) = Node::from_graph_update_json_childless(&json) {
+                                if let Ok(node) = Node::from_graph_update_json(&json) {
                                     // Parse it as an `AuthoredMessage`
                                     let authored_message = AuthoredMessage::from_node(&node);
                                     let _ = s.send(authored_message);

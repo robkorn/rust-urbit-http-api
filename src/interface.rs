@@ -48,7 +48,8 @@ impl ShipInterface {
             .map_err(|_| UrbitAPIError::FailedToLogin)?;
 
         // Trim the auth string to acquire the ship name
-        let ship_name = &auth_string[9..auth_string.find('=').unwrap()];
+        let end_pos = auth_string.find('=').ok_or(UrbitAPIError::FailedToLogin)?;
+        let ship_name = &auth_string[9..end_pos];
 
         Ok(ShipInterface {
             url: ship_url.to_string(),

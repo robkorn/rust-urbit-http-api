@@ -65,7 +65,7 @@ impl Graph {
                 + r#"null}"#;
             let json = json::parse(&node_string)
                 .map_err(|_| UrbitAPIError::FailedToCreateGraphNodeFromJSON)?;
-            let processed_node = Node::from_json_childless(&json)?;
+            let processed_node = Node::from_json(&json)?;
             childless_nodes.push(processed_node);
         }
 
@@ -212,7 +212,6 @@ impl Node {
     /// Converts to `JsonValue`
     /// json representation of a node
     fn to_json_value(&self) -> JsonValue {
-        
         let mut children = object!();
         for child in &self.children {
             children[child.index_tail()] = child.to_json_value();
@@ -233,8 +232,8 @@ impl Node {
     }
 
     /// Convert from node `JsonValue` which is wrapped up in a few wrapper fields
-    /// into a `Node` with no children.
-    pub fn from_graph_update_json_childless(wrapped_json: &JsonValue) -> Result<Node> {
+    /// into a `Node`, with children if they exist.
+    pub fn from_graph_update_json(wrapped_json: &JsonValue) -> Result<Node> {
         let dumped = wrapped_json["graph-update"]["add-nodes"]["nodes"].dump();
         let split: Vec<&str> = dumped.splitn(2, ":").collect();
         if split.len() <= 1 {
@@ -247,14 +246,13 @@ impl Node {
         let inner_json = json::parse(&inner_string)
             .map_err(|_| UrbitAPIError::FailedToCreateGraphNodeFromJSON)?;
 
-        Self::from_json_childless(&inner_json)
+        Self::from_json(&inner_json)
     }
 
     /// Convert from straight node `JsonValue` to `Node`
-    /// Defaults to no children.
-    fn from_json_childless(json: &JsonValue) -> Result<Node> {
+    pub fn from_json(json: &JsonValue) -> Result<Node> {
         // Process all of the json fields
-        let _children = json["children"].clone();
+        let children = json["children"].clone();
         let post_json = json["post"].clone();
         let index = post_json["index"]
             .as_str()
@@ -295,6 +293,16 @@ impl Node {
             );
         }
 
+        // children
+        let mut node_children: Vec<Node> = vec![];
+        if let JsonValue::Object(o) = children {
+            for (_, val) in o.iter() {
+                if let Ok(child_node) = Node::from_json(val) {
+                    node_children.push(child_node);
+                }
+            }
+        }
+
         Ok(Node {
             index: index.to_string(),
             author: author.to_string(),
@@ -302,7 +310,7 @@ impl Node {
             signatures: signatures,
             contents: contents,
             hash: hash,
-            children: vec![],
+            children: node_children,
         })
     }
 }
