@@ -31,7 +31,7 @@ impl<'a> GraphStore<'a> {
     }
 
     /// Create a new Graph Store node using a specified index and creation time, and connected ship as author
-    pub fn new_node_with_index(
+    pub fn new_node_specified(
         &self,
         node_index: &str,
         unix_time: u64,

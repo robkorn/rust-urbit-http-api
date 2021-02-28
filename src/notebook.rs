@@ -332,17 +332,17 @@ impl<'a> Notebook<'a> {
         //make child 2 for comments
         //make child 1/1 for initial note revision
         let node_root = node_root
-            .add_child(&gs.new_node_with_index(
+            .add_child(&gs.new_node_specified(
                 &index.note_content_node_index(),
                 unix_time,
                 &NodeContents::new(),
             ))
-            .add_child(&gs.new_node_with_index(
+            .add_child(&gs.new_node_specified(
                 &index.note_comments_node_index(),
                 unix_time,
                 &NodeContents::new(),
             ))
-            .add_child(&gs.new_node_with_index(
+            .add_child(&gs.new_node_specified(
                 &index.note_revision_index(1),
                 unix_time,
                 &NodeContents::new().add_text(title).add_text(body),
@@ -380,7 +380,7 @@ impl<'a> Notebook<'a> {
         let unix_time = get_current_time();
 
         // add the node
-        let node = gs.new_node_with_index(
+        let node = gs.new_node_specified(
             &note_new_index,
             unix_time,
             &NodeContents::new().add_text(title).add_text(body),
@@ -413,7 +413,7 @@ impl<'a> Notebook<'a> {
         let unix_time = get_current_time();
 
         //make a new node under the note comments node  - this is root node for this comment
-        let cmt_root_node = gs.new_node_with_index(
+        let cmt_root_node = gs.new_node_specified(
             &index.new_comment_root_index(),
             unix_time,
             &NodeContents::new(),
@@ -422,7 +422,7 @@ impl<'a> Notebook<'a> {
         let index = NotebookIndex::new(&cmt_root_node.index);
         //make initial comment revision node
         let cmt_rev_index = index.comment_revision_index(1)?;
-        let cmt_rev_node = gs.new_node_with_index(&cmt_rev_index, unix_time, comment);
+        let cmt_rev_node = gs.new_node_specified(&cmt_rev_index, unix_time, comment);
         //assemble node tree
         let cmt_root_node = cmt_root_node.add_child(&cmt_rev_node);
         //add the nodes
@@ -457,7 +457,7 @@ impl<'a> Notebook<'a> {
         let mut gs = self.channel.graph_store();
         let unix_time = get_current_time();
 
-        let node = gs.new_node_with_index(&cmt_new_index, unix_time, comment);
+        let node = gs.new_node_specified(&cmt_new_index, unix_time, comment);
 
         if let Ok(_) = gs.add_node(notebook_ship, notebook_name, &node) {
             Ok(node.index.clone())
