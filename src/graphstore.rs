@@ -113,14 +113,18 @@ impl<'a> GraphStore<'a> {
             .ship_interface
             .scry("graph-store", &path, "json")?;
 
+        // If successfully acquired graph json
         if res.status().as_u16() == 200 {
             if let Ok(body) = res.text() {
-                let graph_json = json::parse(&body).expect("Failed to parse graph json.");
-                return Graph::from_json(graph_json);
+                if let Ok(graph_json) = json::parse(&body) {
+                    return Graph::from_json(graph_json);
+                }
             }
         }
-        return Err(UrbitAPIError::FailedToGetGraph(resource_name.to_string()));
+        // Else return error
+        Err(UrbitAPIError::FailedToGetGraph(resource_name.to_string()))
     }
+
     /// Acquire a node from Graph Store
     pub fn get_node(
         &mut self,
@@ -135,17 +139,21 @@ impl<'a> GraphStore<'a> {
             .ship_interface
             .scry("graph-store", &path, "json")?;
 
+        // If successfully acquired node json
         if res.status().as_u16() == 200 {
             if let Ok(body) = res.text() {
-                let graph_json = json::parse(&body).expect("Failed to parse graph node json.");
-                return Node::from_graph_update_json(&graph_json);
+                if let Ok(node_json) = json::parse(&body) {
+                    return Node::from_graph_update_json(&node_json);
+                }
             }
         }
-        return Err(UrbitAPIError::FailedToGetGraphNode(format!(
+        // Else return error
+        Err(UrbitAPIError::FailedToGetGraphNode(format!(
             "/{}/{}/{}",
             resource_ship, resource_name, node_index
-        )));
+        )))
     }
+
     /// Archive a graph in Graph Store
     pub fn archive_graph(&mut self, resource_ship: &str, resource_name: &str) -> Result<String> {
         let path = format!("/archive/{}/{}", resource_ship, resource_name);
