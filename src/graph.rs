@@ -65,7 +65,7 @@ impl Graph {
                 + r#"null}"#;
             let json = json::parse(&node_string)
                 .map_err(|_| UrbitAPIError::FailedToCreateGraphNodeFromJSON)?;
-            let processed_node = Node::from_json_childless(&json)?;
+            let processed_node = Node::from_json(&json)?;
             childless_nodes.push(processed_node);
         }
 
@@ -231,61 +231,6 @@ impl Node {
         result_json
     }
 
-    /// Convert from straight node `JsonValue` to `Node`
-    /// Defaults to no children.
-    fn from_json_childless(json: &JsonValue) -> Result<Node> {
-        // Process all of the json fields
-        let _children = json["children"].clone();
-        let post_json = json["post"].clone();
-        let index = post_json["index"]
-            .as_str()
-            .ok_or(UrbitAPIError::FailedToCreateGraphNodeFromJSON)?;
-        let author = post_json["author"]
-            .as_str()
-            .ok_or(UrbitAPIError::FailedToCreateGraphNodeFromJSON)?;
-        let time_sent = post_json["time-sent"]
-            .as_u64()
-            .ok_or(UrbitAPIError::FailedToCreateGraphNodeFromJSON)?;
-
-        // Wrap hash in an Option for null case
-        let hash = match post_json["hash"].is_null() {
-            true => None,
-            false => Some(
-                post_json["hash"]
-                    .as_str()
-                    .ok_or(UrbitAPIError::FailedToCreateGraphNodeFromJSON)?
-                    .to_string(),
-            ),
-        };
-
-        // Convert array JsonValue to vector for contents
-        let mut json_contents = vec![];
-        for content in post_json["contents"].members() {
-            json_contents.push(content.clone());
-        }
-        let contents = NodeContents::from_json(json_contents);
-
-        // Convert array JsonValue to vector for signatures
-        let mut signatures = vec![];
-        for signature in post_json["signatures"].members() {
-            signatures.push(
-                signature
-                    .as_str()
-                    .ok_or(UrbitAPIError::FailedToCreateGraphNodeFromJSON)?
-                    .to_string(),
-            );
-        }
-
-        Ok(Node {
-            index: index.to_string(),
-            author: author.to_string(),
-            time_sent: time_sent,
-            signatures: signatures,
-            contents: contents,
-            hash: hash,
-            children: vec![],
-        })
-    }
     /// Convert from node `JsonValue` which is wrapped up in a few wrapper fields
     /// into a `Node`, with children if they exist.
     pub fn from_graph_update_json(wrapped_json: &JsonValue) -> Result<Node> {
