@@ -77,7 +77,7 @@ impl Note {
 
         match revision {
             Some(idx) => {
-                //find a specific revision of the notebook content
+                // find a specific revision of the notebook content
                 for revision_node in &content_node.children {
                     if revision_node.index == idx {
                         fetched_revision_node = revision_node.clone();
@@ -190,7 +190,7 @@ impl<'a> Notebook<'a> {
         self.fetch_note(notebook_ship, notebook_name, comment_index)
     }
 
-    /// find the index of the latest revision of a note given an index `note_index`
+    /// Find the index of the latest revision of a note given an index `note_index`
     /// `note_index` can be any valid note index (even an index of a comment on the note)
     pub fn fetch_note_latest_revision_index(
         &mut self,
@@ -198,7 +198,7 @@ impl<'a> Notebook<'a> {
         notebook_name: &str,
         note_index: &str,
     ) -> Result<String> {
-        //check index
+        // check index
         let index = NotebookIndex::new(note_index);
         if !index.is_valid() {
             return Err(UrbitAPIError::InvalidNoteGraphNodeIndex(
@@ -206,10 +206,10 @@ impl<'a> Notebook<'a> {
             ));
         }
 
-        //root note index
+        // root note index
         let note_root_index = index.note_root_index();
 
-        //get note root node
+        // get note root node
         let node =
             &self
                 .channel
@@ -233,16 +233,16 @@ impl<'a> Notebook<'a> {
         ))
     }
 
-    /// fetch a comment given an index `comment_index`
-    /// index can be the comment root node index, or index of any revision
-    /// will fetch most recent revision if passed root node index
+    /// Fetch a comment given an index `comment_index`.
+    /// Index can be the comment root node index, or index of any revision.
+    /// Will fetch most recent revision if passed root node index
     pub fn fetch_comment(
         &mut self,
         notebook_ship: &str,
         notebook_name: &str,
         comment_index: &str,
     ) -> Result<Comment> {
-        //check index
+        // check index
         let index = NotebookIndex::new(comment_index);
 
         if !index.is_valid_comment_index() {
@@ -252,7 +252,7 @@ impl<'a> Notebook<'a> {
         }
         let comment_root_index = index.comment_root_index()?;
 
-        //get comment root node
+        // get comment root node
         let node = &self.channel.graph_store().get_node(
             notebook_ship,
             notebook_name,
@@ -260,7 +260,7 @@ impl<'a> Notebook<'a> {
         )?;
 
         if index.is_comment_root() {
-            //find latest comment revision
+            // find latest comment revision
             let mut newest = node.children[0].clone();
             for rnode in &node.children {
                 if rnode.index_tail() > newest.index_tail() {
@@ -269,7 +269,7 @@ impl<'a> Notebook<'a> {
             }
             return Ok(Comment::from_node(&newest));
         } else {
-            //find specific comment revision
+            // find specific comment revision
             for rnode in &node.children {
                 if rnode.index == comment_index {
                     return Ok(Comment::from_node(&rnode));
@@ -282,15 +282,15 @@ impl<'a> Notebook<'a> {
         ))
     }
 
-    /// fetch index of latest revision of a comment given an index `comment_index`
-    /// index can be the comment root node index, or the index of any revision of the comment
+    /// Fetch index of latest revision of a comment given an index `comment_index`.
+    /// Index can be the comment root node index, or the index of any revision of the comment.
     pub fn fetch_comment_latest_revision_index(
         &mut self,
         notebook_ship: &str,
         notebook_name: &str,
         comment_index: &str,
     ) -> Result<String> {
-        //check index
+        // check index
         let index = NotebookIndex::new(comment_index);
 
         if !index.is_valid_comment_index() {
@@ -300,7 +300,7 @@ impl<'a> Notebook<'a> {
         }
         let comment_root_index = index.comment_root_index()?;
 
-        //get comment root node
+        // get comment root node
         let node = &self.channel.graph_store().get_node(
             notebook_ship,
             notebook_name,
@@ -323,8 +323,8 @@ impl<'a> Notebook<'a> {
         ))
     }
 
-    /// adds a new note to the notebook
-    /// returns the index of the first revision of the created note
+    /// Adds a new note to the notebook.
+    /// Returns the index of the newly created first revision of the note.
     pub fn add_note(
         &mut self,
         notebook_ship: &str,
@@ -333,15 +333,16 @@ impl<'a> Notebook<'a> {
         body: &str,
     ) -> Result<String> {
         let mut gs = self.channel.graph_store();
-        //make the root node for the note
+        // make the root node for the note
         let node_root = gs.new_node(&NodeContents::new());
-        //save creation time for other nodes
+        // save creation time for other nodes
         let unix_time = node_root.time_sent;
-        //index helper
+        // index helper
         let index = NotebookIndex::new(&node_root.index);
-        //make child 1 for note content
-        //make child 2 for comments
-        //make child 1/1 for initial note revision
+
+        // make child 1 for note content
+        // make child 2 for comments
+        // make child 1/1 for initial note revision
         let node_root = node_root
             .add_child(&gs.new_node_specified(
                 &index.note_content_node_index(),
@@ -368,9 +369,9 @@ impl<'a> Notebook<'a> {
         }
     }
 
-    /// update an existing note with new title and body
-    /// note_index can be any valid note index, (even a comment index for any comment on the note)
-    /// returns index of new revision created
+    /// Update an existing note with a new title and body.
+    /// `note_index` can be any valid note index.
+    /// Returns index of the newly created revision.
     pub fn update_note(
         &mut self,
         notebook_ship: &str,
@@ -379,12 +380,12 @@ impl<'a> Notebook<'a> {
         title: &str,
         body: &str,
     ) -> Result<String> {
-        //fetch latest revision of note (will return error if not a valid note index)
+        // fetch latest revision of note (will return error if not a valid note index)
         let note_latest_index =
             self.fetch_note_latest_revision_index(notebook_ship, notebook_name, note_index)?;
-        //index helper
+        // index helper
         let index = NotebookIndex::new(&note_latest_index);
-        //build new node index
+        // build new node index
         let note_new_index = index.next_revision_index()?;
 
         let mut gs = self.channel.graph_store();
@@ -403,8 +404,9 @@ impl<'a> Notebook<'a> {
             Err(UrbitAPIError::FailedToCreateNote(node.to_json().dump()))
         }
     }
-    /// add a new comment to the notebook on note specified by `note_index`
-    /// `note_index` can be any valid note or comment index
+
+    /// Add a new comment to a specific note inside of a notebook specified by `note_index`
+    /// `note_index` can be any valid note/revision, and even the index of other comments.
     pub fn add_comment(
         &mut self,
         notebook_ship: &str,
@@ -412,7 +414,7 @@ impl<'a> Notebook<'a> {
         note_index: &str,
         comment: &NodeContents,
     ) -> Result<String> {
-        //check index
+        // check index
         let index = NotebookIndex::new(note_index);
         if !index.is_valid() {
             return Err(UrbitAPIError::InvalidNoteGraphNodeIndex(
@@ -423,20 +425,20 @@ impl<'a> Notebook<'a> {
         let mut gs = self.channel.graph_store();
         let unix_time = get_current_time();
 
-        //make a new node under the note comments node  - this is root node for this comment
+        // make a new node under the note comments node  - this is root node for this comment
         let cmt_root_node = gs.new_node_specified(
             &index.new_comment_root_index(),
             unix_time,
             &NodeContents::new(),
         );
-        //update index helper from new node
+        // update index helper from new node
         let index = NotebookIndex::new(&cmt_root_node.index);
-        //make initial comment revision node
+        // make initial comment revision node
         let cmt_rev_index = index.comment_revision_index(1)?;
         let cmt_rev_node = gs.new_node_specified(&cmt_rev_index, unix_time, comment);
-        //assemble node tree
+        // assemble node tree
         let cmt_root_node = cmt_root_node.add_child(&cmt_rev_node);
-        //add the nodes
+        // add the nodes
         if let Ok(_) = gs.add_node(notebook_ship, notebook_name, &cmt_root_node) {
             Ok(cmt_rev_index.clone())
         } else {
@@ -446,9 +448,9 @@ impl<'a> Notebook<'a> {
         }
     }
 
-    /// update an existing comment on a note
-    /// comment_index should be any valid comment index,
-    /// returns index of the new comment revision
+    /// Update an existing comment on a note. `comment_index` must be a valid index for a comment
+    /// for a note within the notebook specified which your ship has edit rights for.
+    /// Returns index of the new comment revision
     pub fn update_comment(
         &mut self,
         notebook_ship: &str,
@@ -456,12 +458,12 @@ impl<'a> Notebook<'a> {
         comment_index: &str,
         comment: &NodeContents,
     ) -> Result<String> {
-        //fetch latest comment revision index (will return error if not a valid comment index)
+        // fetch latest comment revision index (will return error if not a valid comment index)
         let cmt_latest_index =
             self.fetch_comment_latest_revision_index(notebook_ship, notebook_name, comment_index)?;
-        //index helper
+        // index helper
         let index = NotebookIndex::new(&cmt_latest_index);
-        //build new node index
+        // build new node index
         let cmt_new_index = index.next_revision_index()?;
 
         // add the node
@@ -487,13 +489,13 @@ impl<'a> NotebookIndex<'a> {
         }
     }
 
-    //notebook index slices
-    //must have at least 2 slices to be valid notebook index
-    //slice 0 must have len 0 - means index started with a "/"
-    //slice 1 is note root node
-    //slice 2 is "1" for note, "2" for comment
-    //slice 3 is note revision or comment root node
-    //slice 4 is comment revision
+    // notebook index slices
+    // must have at least 2 slices to be valid notebook index
+    // slice 0 must have len 0 - means index started with a "/"
+    // slice 1 is note root node
+    // slice 2 is "1" for note, "2" for comment
+    // slice 3 is note revision or comment root node
+    // slice 4 is comment revision
 
     /// is this any kind of valid notebook node index (comment or note)?
     pub fn is_valid(&self) -> bool {
@@ -593,7 +595,7 @@ impl<'a> NotebookIndex<'a> {
     pub fn next_revision_index(&self) -> Result<String> {
         let rev = self.revision()?;
         let newrev = rev + 1;
-        //we know index_split.len() is either 4 or 5 here as revision() was Ok
+        // we know index_split.len() is either 4 or 5 here as revision() was Ok
         if self.index_split.len() == 5 {
             Ok(format!(
                 "/{}/2/{}/{}",
