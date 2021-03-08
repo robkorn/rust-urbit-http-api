@@ -95,7 +95,7 @@ pub trait Messaging {
         Ok(export_log)
     }
 
-    /// Extracts a messages as `AuthoredMessage`s
+    /// Extracts messages as `AuthoredMessage`s
     fn export_authored_messages(
         &mut self,
         resource_ship: &str,
