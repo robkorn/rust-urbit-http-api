@@ -1,6 +1,5 @@
 pub mod channel;
 pub mod chat;
-pub mod comment;
 pub mod error;
 pub mod graph;
 pub mod graphstore;
@@ -9,9 +8,9 @@ pub mod interface;
 pub mod local_config;
 pub mod notebook;
 pub mod subscription;
+pub mod traits;
 
 pub use channel::Channel;
-pub use chat::{AuthoredMessage, Message};
 pub use error::{Result, UrbitAPIError};
 pub use graph::{Graph, Node, NodeContents};
 pub use graphstore::GraphStore;
@@ -23,3 +22,4 @@ pub use local_config::{
 };
 pub use notebook::Note;
 pub use subscription::Subscription;
+pub use traits::messaging::{AuthoredMessage, Message, Messaging};

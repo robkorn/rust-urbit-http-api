@@ -1,12 +1,15 @@
-use crate::comment::Comment;
 use crate::graph::NodeContents;
 use crate::helper::{get_current_da_time, get_current_time};
+use crate::AuthoredMessage;
 use crate::{Channel, Node, Result, UrbitAPIError};
 
 /// A struct that provides an interface for interacting with Urbit notebooks
 pub struct Notebook<'a> {
     pub channel: &'a mut Channel,
 }
+
+/// A comment is effectively equivalent to an `AuthoredMessage`, and is stored as such.
+pub type Comment = AuthoredMessage;
 
 /// A struct that represents a Note from a Notebook
 #[derive(Clone, Debug)]
