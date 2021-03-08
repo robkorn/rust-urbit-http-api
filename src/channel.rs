@@ -1,8 +1,8 @@
-use crate::chat::Chat;
+use crate::apps::chat::Chat;
+use crate::apps::notebook::Notebook;
 use crate::error::{Result, UrbitAPIError};
 use crate::graphstore::GraphStore;
 use crate::interface::ShipInterface;
-use crate::notebook::Notebook;
 use crate::subscription::{CreationID, Subscription};
 use eventsource_threaded::{EventSource, ReceiverSource};
 use json::{object, JsonValue};

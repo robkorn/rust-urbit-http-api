@@ -9,4 +9,4 @@ pub struct HarkStore<'a> {
     pub channel: &'a mut Channel,
 }
 
-impl HarkStore {}
+impl<'a> HarkStore<'a> {}

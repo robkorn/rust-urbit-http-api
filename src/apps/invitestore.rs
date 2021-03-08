@@ -9,7 +9,7 @@ pub struct InviteStore<'a> {
     pub channel: &'a mut Channel,
 }
 
-impl InviteStore {
+impl<'a> InviteStore<'a> {
     pub fn accept_invite(&self, term: &str, uid: &str) {
         // let mut poke2_data = json::JsonValue::new_object();
         // poke2_data["accept"] = json::JsonValue::new_object();
