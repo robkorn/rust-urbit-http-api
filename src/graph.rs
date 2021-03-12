@@ -49,13 +49,17 @@ impl Graph {
         // Create a list of nodes all stripped of child associations
         let mut childless_nodes = vec![];
         // Get the graph inner json
-        let graph_text = format!("{}", graph_json["graph-update"]["add-graph"]["graph"]);
+        let mut graph_text = format!("{}", graph_json["graph-update"]["add-graph"]["graph"]);
+        if graph_text == "null" {
+            graph_text = format!("{}", graph_json["graph-update"]["add-nodes"]["nodes"]);
+        }
 
         // Create regex to capture each node json
-        let re = Regex::new(r#""\d+":(.+?children":).+?"#)
+        let re = Regex::new(r#"\d+":(.+?children":).+?"#)
             .map_err(|_| UrbitAPIError::FailedToCreateGraphFromJSON)?;
         // For each capture group, create a childless node
         for capture in re.captures_iter(&graph_text) {
+            println!("capture");
             // Get the node json string without it's children
             let node_string = capture
                 .get(1)
@@ -63,10 +67,20 @@ impl Graph {
                 .as_str()
                 .to_string()
                 + r#"null}"#;
+            println!("\n\nnode string: {:?}\n\n", node_string);
             let json = json::parse(&node_string)
                 .map_err(|_| UrbitAPIError::FailedToCreateGraphNodeFromJSON)?;
             let processed_node = Node::from_json(&json)?;
+            println!("processed node: {:?}", processed_node);
             childless_nodes.push(processed_node);
+        }
+
+        println!("\n\nchildless_nodes: {:?}\n\n", childless_nodes);
+
+        // Failed to extract nodes from json via Regex
+        if childless_nodes.len() == 0 {
+            println!("Childless");
+            return Err(UrbitAPIError::FailedToCreateGraphFromJSON);
         }
 
         // Create a placeholder node that accumulates all of the children
