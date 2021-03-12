@@ -216,24 +216,6 @@ impl<'a> GraphStore<'a> {
         Err(UrbitAPIError::FailedToGetGraph(resource_name.to_string()))
     }
 
-    /// Archive a graph in Graph Store
-    pub fn archive_graph(&mut self, resource_ship: &str, resource_name: &str) -> Result<String> {
-        let path = format!("/archive/{}/{}", resource_ship, resource_name);
-        let res = self
-            .channel
-            .ship_interface
-            .scry("graph-store", &path, "json")?;
-
-        if res.status().as_u16() == 200 {
-            if let Ok(body) = res.text() {
-                return Ok(body);
-            }
-        }
-        return Err(UrbitAPIError::FailedToArchiveGraph(
-            resource_name.to_string(),
-        ));
-    }
-
     /// Remove graph from Graph Store
     pub fn remove_graph(&mut self, resource_ship: &str, resource_name: &str) -> Result<()> {
         let prepped_json = object! {
@@ -254,6 +236,42 @@ impl<'a> GraphStore<'a> {
                 resource_name.to_string(),
             ));
         }
+    }
+
+    /// Archive a graph in Graph Store
+    pub fn archive_graph(&mut self, resource_ship: &str, resource_name: &str) -> Result<String> {
+        let path = format!("/archive/{}/{}", resource_ship, resource_name);
+        let res = self
+            .channel
+            .ship_interface
+            .scry("graph-store", &path, "json")?;
+
+        if res.status().as_u16() == 200 {
+            if let Ok(body) = res.text() {
+                return Ok(body);
+            }
+        }
+        return Err(UrbitAPIError::FailedToArchiveGraph(
+            resource_name.to_string(),
+        ));
+    }
+
+    /// Unarchive a graph in Graph Store
+    pub fn unarchive_graph(&mut self, resource_ship: &str, resource_name: &str) -> Result<String> {
+        let path = format!("/unarchive/{}/{}", resource_ship, resource_name);
+        let res = self
+            .channel
+            .ship_interface
+            .scry("graph-store", &path, "json")?;
+
+        if res.status().as_u16() == 200 {
+            if let Ok(body) = res.text() {
+                return Ok(body);
+            }
+        }
+        return Err(UrbitAPIError::FailedToArchiveGraph(
+            resource_name.to_string(),
+        ));
     }
 
     /// Add a tag to a graph
