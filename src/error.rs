@@ -17,6 +17,8 @@ pub enum UrbitAPIError {
     FailedToFetchTags,
     #[error("Failed to send a chat message to chat {0}.")]
     FailedToSendChatMessage(String),
+    #[error("Failed to acquire update log from Graph Store for resource {0}.")]
+    FailedToGetUpdateLog(String),
     #[error("Failed to acquire graph from Graph Store for resource {0}.")]
     FailedToGetGraph(String),
     #[error("Failed to acquire graph node from Graph Store for resource + index {0}.")]
