@@ -19,6 +19,10 @@ pub enum UrbitAPIError {
     FailedToGetGraphNode(String),
     #[error("Failed to archive graph from Graph Store for resource {0}.")]
     FailedToArchiveGraph(String),
+    #[error("Failed to add tag to resource {0}.")]
+    FailedToAddTag(String),
+    #[error("Failed to remove tag from resource {0}.")]
+    FailedToRemoveTag(String),
     #[error("Failed to add nodes to Graph Store for resource {0}.")]
     FailedToAddNodesToGraphStore(String),
     #[error("Failed to remove nodes from Graph Store for resource {0}.")]
