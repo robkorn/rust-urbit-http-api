@@ -283,4 +283,26 @@ impl<'a> GraphStore<'a> {
         }
         return Err(UrbitAPIError::FailedToFetchTags);
     }
+
+    /// Performs a scry to fetch all tags
+    pub fn fetch_tag_queries(&mut self) -> Result<Vec<JsonValue>> {
+        let resp = self
+            .channel
+            .ship_interface
+            .scry("graph-store", "/tag-queries", "json")?;
+
+        if resp.status().as_u16() == 200 {
+            let json_text = resp.text()?;
+            println!("{}", json_text);
+            if let Ok(json) = json::parse(&json_text) {
+                let tags = json["graph-update"]["tag-queries"].clone();
+                let mut tags_list = vec![];
+                for tag in tags.members() {
+                    tags_list.push(tag.clone())
+                }
+                return Ok(tags_list);
+            }
+        }
+        return Err(UrbitAPIError::FailedToFetchTags);
+    }
 }
