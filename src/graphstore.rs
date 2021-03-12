@@ -366,7 +366,25 @@ impl<'a> GraphStore<'a> {
         return Err(UrbitAPIError::FailedToFetchTags);
     }
 
-    /// Acquire a subset of the update log for a given resource
+    /// Acquire the time the update log of a given resource was last updated
+    pub fn peek_update_log(&mut self, resource_ship: &str, resource_name: &str) -> Result<String> {
+        let path = format!("/peek-update-log/{}/{}", resource_ship, resource_name);
+        let res = self
+            .channel
+            .ship_interface
+            .scry("graph-store", &path, "json")?;
+
+        // If successfully acquired node json
+        if res.status().as_u16() == 200 {
+            if let Ok(body) = res.text() {
+                return Ok(body);
+            }
+        }
+        // Else return error
+        Err(UrbitAPIError::FailedToGetGraph(resource_name.to_string()))
+    }
+
+    /// Acquire the update log for a given resource
     pub fn get_update_log(&mut self, resource_ship: &str, resource_name: &str) -> Result<String> {
         let path = format!("/update-log/{}/{}", resource_ship, resource_name);
         let res = self
