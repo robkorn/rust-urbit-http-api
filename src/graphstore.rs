@@ -135,6 +135,38 @@ impl<'a> GraphStore<'a> {
         )))
     }
 
+    /// Acquire a subset of children of a node from Graph Store by specifying the start and end indices
+    /// of the subset children.
+    pub fn get_node_subset(
+        &mut self,
+        resource_ship: &str,
+        resource_name: &str,
+        node_index: &str,
+        start_index: &str,
+        end_index: &str,
+    ) -> Result<Graph> {
+        let path = format!(
+            "/node-children-subset/{}/{}/{}/{}/{}",
+            resource_ship, resource_name, node_index, end_index, start_index
+        );
+        let res = self
+            .channel
+            .ship_interface
+            .scry("graph-store", &path, "json")?;
+
+        // If successfully acquired node json
+        if res.status().as_u16() == 200 {
+            if let Ok(body) = res.text() {
+                println!("body: {}", body);
+                if let Ok(graph_json) = json::parse(&body) {
+                    return Graph::from_json(graph_json);
+                }
+            }
+        }
+        // Else return error
+        Err(UrbitAPIError::FailedToGetGraph(resource_name.to_string()))
+    }
+
     /// Acquire a graph from Graph Store
     pub fn get_graph(&mut self, resource_ship: &str, resource_name: &str) -> Result<Graph> {
         let path = format!("/graph/{}/{}", resource_ship, resource_name);
@@ -176,7 +208,6 @@ impl<'a> GraphStore<'a> {
         // If successfully acquired graph json
         if res.status().as_u16() == 200 {
             if let Ok(body) = res.text() {
-                println!("body: {}", body);
                 if let Ok(graph_json) = json::parse(&body) {
                     return Graph::from_json(graph_json);
                 }
@@ -273,8 +304,8 @@ impl<'a> GraphStore<'a> {
         }
     }
 
-    /// Performs a scry to fetch all keys
-    pub fn fetch_keys(&mut self) -> Result<Vec<JsonValue>> {
+    /// Performs a scry to get all keys
+    pub fn get_keys(&mut self) -> Result<Vec<JsonValue>> {
         let resp = self
             .channel
             .ship_interface
@@ -294,8 +325,8 @@ impl<'a> GraphStore<'a> {
         return Err(UrbitAPIError::FailedToFetchKeys);
     }
 
-    /// Performs a scry to fetch all tags
-    pub fn fetch_tags(&mut self) -> Result<Vec<JsonValue>> {
+    /// Performs a scry to get all tags
+    pub fn get_tags(&mut self) -> Result<Vec<JsonValue>> {
         let resp = self
             .channel
             .ship_interface
@@ -315,8 +346,8 @@ impl<'a> GraphStore<'a> {
         return Err(UrbitAPIError::FailedToFetchTags);
     }
 
-    /// Performs a scry to fetch all tags
-    pub fn fetch_tag_queries(&mut self) -> Result<Vec<JsonValue>> {
+    /// Performs a scry to get all tags
+    pub fn get_tag_queries(&mut self) -> Result<Vec<JsonValue>> {
         let resp = self
             .channel
             .ship_interface
@@ -324,7 +355,6 @@ impl<'a> GraphStore<'a> {
 
         if resp.status().as_u16() == 200 {
             let json_text = resp.text()?;
-            println!("{}", json_text);
             if let Ok(json) = json::parse(&json_text) {
                 let tags = json["graph-update"]["tag-queries"].clone();
                 let mut tags_list = vec![];
