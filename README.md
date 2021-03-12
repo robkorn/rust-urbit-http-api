@@ -2,6 +2,8 @@
 
 This library wraps the Urbit ship http interface exposing it as an easy-to-use Rust crate.
 
+[![awesome urbit badge](https://img.shields.io/badge/~-awesome%20urbit-lightgrey)](https://github.com/urbit/awesome-urbit)
+
 All implementation details such as auth cookies, EventSource connections, tracking message ids, and other such matters are automatically handled for you, and as enables a greatly improved experience in writing Rust apps that interact with Urbit ships.
 
 This crate currently enables devs to:
