@@ -13,6 +13,8 @@ pub enum UrbitAPIError {
     FailedToCreateNewSubscription,
     #[error("Failed to fetch Graph Store keys.")]
     FailedToFetchKeys,
+    #[error("Failed to fetch Graph Store tags.")]
+    FailedToFetchTags,
     #[error("Failed to send a chat message to chat {0}.")]
     FailedToSendChatMessage(String),
     #[error("Failed to acquire graph from Graph Store for resource {0}.")]
