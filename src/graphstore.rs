@@ -30,7 +30,8 @@ impl<'a> GraphStore<'a> {
         )
     }
 
-    /// Create a new Graph Store node using a specified index and creation time, and connected ship as author
+    /// Create a new Graph Store node using a specified index and creation time
+    /// using the connected ship as author
     pub fn new_node_specified(
         &self,
         node_index: &str,
@@ -63,6 +64,45 @@ impl<'a> GraphStore<'a> {
                     "name": resource_name
                 },
             "nodes": node.to_json()
+            }
+        };
+
+        let resp = (&mut self.channel).poke("graph-push-hook", "graph-update", &prepped_json)?;
+
+        if resp.status().as_u16() == 204 {
+            Ok(())
+        } else {
+            return Err(UrbitAPIError::FailedToAddNodesToGraphStore(
+                resource_name.to_string(),
+            ));
+        }
+    }
+
+    /// Add multiple nodes to Graph Store
+    pub fn add_nodes(
+        &mut self,
+        resource_ship: &str,
+        resource_name: &str,
+        nodes: &Vec<Node>,
+    ) -> Result<()> {
+        let mut nodes_string = "{".to_string();
+        // Add all of the nodes
+        for node in nodes {
+            nodes_string = nodes_string + &(node.to_json().dump()) + ",";
+        }
+        // Remove the final comma
+        nodes_string = nodes_string[0..nodes_string.len() - 1].to_string();
+        nodes_string += "}";
+
+        println!("Nodes: {}", nodes_string);
+
+        let prepped_json = object! {
+            "add-nodes": {
+                "resource": {
+                    "ship": resource_ship,
+                    "name": resource_name
+                },
+            "nodes": nodes_string
             }
         };
 
