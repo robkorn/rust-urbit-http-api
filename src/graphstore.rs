@@ -155,6 +155,37 @@ impl<'a> GraphStore<'a> {
         Err(UrbitAPIError::FailedToGetGraph(resource_name.to_string()))
     }
 
+    /// Acquire a subset of a graph from Graph Store by specifying the start and end indices
+    /// of the subset of the graph.
+    pub fn get_graph_subset(
+        &mut self,
+        resource_ship: &str,
+        resource_name: &str,
+        start_index: &str,
+        end_index: &str,
+    ) -> Result<Graph> {
+        let path = format!(
+            "/graph-subset/{}/{}/{}/{}",
+            resource_ship, resource_name, end_index, start_index
+        );
+        let res = self
+            .channel
+            .ship_interface
+            .scry("graph-store", &path, "json")?;
+
+        // If successfully acquired graph json
+        if res.status().as_u16() == 200 {
+            if let Ok(body) = res.text() {
+                println!("body: {}", body);
+                if let Ok(graph_json) = json::parse(&body) {
+                    return Graph::from_json(graph_json);
+                }
+            }
+        }
+        // Else return error
+        Err(UrbitAPIError::FailedToGetGraph(resource_name.to_string()))
+    }
+
     /// Archive a graph in Graph Store
     pub fn archive_graph(&mut self, resource_ship: &str, resource_name: &str) -> Result<String> {
         let path = format!("/archive/{}/{}", resource_ship, resource_name);
