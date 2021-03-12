@@ -11,6 +11,8 @@ pub enum UrbitAPIError {
     FailedToCreateNewChannel,
     #[error("Failed to create a new subscription.")]
     FailedToCreateNewSubscription,
+    #[error("Failed to fetch Graph Store keys.")]
+    FailedToFetchKeys,
     #[error("Failed to send a chat message to chat {0}.")]
     FailedToSendChatMessage(String),
     #[error("Failed to acquire graph from Graph Store for resource {0}.")]

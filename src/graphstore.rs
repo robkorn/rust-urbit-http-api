@@ -1,7 +1,7 @@
 use crate::graph::{Graph, Node, NodeContents};
 use crate::helper::{get_current_da_time, get_current_time, index_dec_to_ud};
 use crate::{Channel, Result, UrbitAPIError};
-use json::object;
+use json::{object, JsonValue};
 
 /// A struct which exposes Graph Store functionality
 pub struct GraphStore<'a> {
@@ -240,5 +240,26 @@ impl<'a> GraphStore<'a> {
         } else {
             return Err(UrbitAPIError::FailedToRemoveTag(resource_name.to_string()));
         }
+    }
+
+    /// Performs a scry to fetch all keys
+    pub fn fetch_keys(&mut self) -> Result<Vec<JsonValue>> {
+        let resp = self
+            .channel
+            .ship_interface
+            .scry("graph-store", "/keys", "json")?;
+
+        if resp.status().as_u16() == 200 {
+            let json_text = resp.text()?;
+            if let Ok(json) = json::parse(&json_text) {
+                let keys = json["graph-update"]["keys"].clone();
+                let mut keys_list = vec![];
+                for key in keys.members() {
+                    keys_list.push(key.clone())
+                }
+                return Ok(keys_list);
+            }
+        }
+        return Err(UrbitAPIError::FailedToFetchKeys);
     }
 }
