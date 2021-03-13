@@ -10,9 +10,10 @@ This crate currently enables devs to:
 
 1. Authorize oneself and open a channel with the ship.
 2. Subscribe to any app/path so that one can read the events currently taking place inside of the ship.
-3. Issue `Poke`s to apps.
-4. Send messages to an Urbit chat.
-5. Issue generic Graph Store pokes.
+3. Issue pokes/scries/threads.
+4. Graph-store support with native Rust `Graph` interface for working with graphs.
+5. Simple rust-based interface for Urbit chats.
+6. Simple rust-based interface for Urbit notebooks.
 
 ## Basic Design
 
