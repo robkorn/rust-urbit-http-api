@@ -4,9 +4,7 @@ use json::{object, JsonValue};
 use regex::Regex;
 
 /// Struct which represents a graph in Graph Store
-/// as a list of Nodes. Simplistic implementation
-/// may be updated in the future if performance becomes
-/// inadequate in real world use cases.
+/// as a list of Nodes.
 #[derive(Clone, Debug)]
 pub struct Graph {
     /// List of nodes structured as a graph with children
@@ -72,7 +70,7 @@ impl Graph {
             childless_nodes.push(processed_node);
         }
 
-        // Failed to extract nodes from json via Regex
+        // Check if failed to extract nodes from json via Regex
         if childless_nodes.len() == 0 {
             return Err(UrbitAPIError::FailedToCreateGraphFromJSON);
         }
@@ -332,6 +330,7 @@ impl NodeContents {
         }
     }
 
+    /// Check if `NodeContents` is empty
     pub fn is_empty(&self) -> bool {
         self.content_list.len() == 0
     }
@@ -406,7 +405,7 @@ impl NodeContents {
             .collect()
     }
 
-    // Extracts content from a content list item `JsonValue`
+    /// Extracts content from a content list item `JsonValue`
     fn extract_content_text(json: &JsonValue) -> String {
         let mut result = "  ".to_string();
         if !json["text"].is_empty() {
