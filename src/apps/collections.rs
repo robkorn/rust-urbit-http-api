@@ -44,15 +44,13 @@ impl Link {
     pub fn from_node(node: &Node) -> Result<Link> {
         println!("Node children: {:?}", &node.children);
         let mut comments: Vec<Comment> = vec![];
-        // Find the comments node which has an index tail of `2`
-        let comments_node = node
-            .children
-            .iter()
-            .find(|c| c.index_tail() == "2")
-            .ok_or(UrbitAPIError::InvalidLinkGraphNode(node.to_json().dump()))?;
+        // Check the to see if the children exist
+        if node.children.len() == 0 || node.children[0].children.len() == 0 {
+            return Err(UrbitAPIError::InvalidLinkGraphNode(node.to_json().dump()));
+        }
 
         // Find the latest revision of each of the comments
-        for comment_node in &comments_node.children {
+        for comment_node in &node.children {
             let mut latest_comment_revision_node = comment_node.children[0].clone();
             for revision_node in &comment_node.children {
                 if revision_node.index_tail() > latest_comment_revision_node.index_tail() {
