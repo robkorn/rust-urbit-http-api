@@ -44,19 +44,17 @@ impl Link {
     pub fn from_node(node: &Node) -> Result<Link> {
         let mut comments: Vec<Comment> = vec![];
         // Check the to see if the children exist
-        if node.children.len() == 0 || node.children[0].children.len() == 0 {
-            return Err(UrbitAPIError::InvalidLinkGraphNode(node.to_json().dump()));
-        }
-
-        // Find the latest revision of each of the comments
-        for comment_node in &node.children {
-            let mut latest_comment_revision_node = comment_node.children[0].clone();
-            for revision_node in &comment_node.children {
-                if revision_node.index_tail() > latest_comment_revision_node.index_tail() {
-                    latest_comment_revision_node = revision_node.clone();
+        if node.children.len() > 0 && node.children[0].children.len() > 0 {
+            // Find the latest revision of each of the comments
+            for comment_node in &node.children {
+                let mut latest_comment_revision_node = comment_node.children[0].clone();
+                for revision_node in &comment_node.children {
+                    if revision_node.index_tail() > latest_comment_revision_node.index_tail() {
+                        latest_comment_revision_node = revision_node.clone();
+                    }
                 }
+                comments.push(Comment::from_node(&latest_comment_revision_node));
             }
-            comments.push(Comment::from_node(&latest_comment_revision_node));
         }
 
         // Acquire the title, which is the first item in the content_list
@@ -79,28 +77,28 @@ impl Link {
 }
 
 impl<'a> Collection<'a> {
-    //     /// Extracts a Notebook's graph from the connected ship and parses it into a vector of `Note`s
-    //     pub fn export_notebook(
-    //         &mut self,
-    //         notebook_ship: &str,
-    //         notebook_name: &str,
-    //     ) -> Result<Vec<Note>> {
-    //         let graph = &self
-    //             .channel
-    //             .graph_store()
-    //             .get_graph(notebook_ship, notebook_name)?;
+    /// Extracts a Collection's graph from the connected ship and parses it into a vector of `Link`s.
+    pub fn export_collection(
+        &mut self,
+        collection_ship: &str,
+        collection_name: &str,
+    ) -> Result<Vec<Link>> {
+        let graph = &self
+            .channel
+            .graph_store()
+            .get_graph(collection_ship, collection_name)?;
 
-    //         // Parse each top level node (Note) in the notebook graph
-    //         let mut notes = vec![];
-    //         for node in &graph.nodes {
-    //             let note = Note::from_node(node, None)?;
-    //             notes.push(note);
-    //         }
+        // Parse each top level node (Link) in the collection graph
+        let mut links = vec![];
+        for node in &graph.nodes {
+            let link = Link::from_node(node)?;
+            links.push(link);
+        }
 
-    //         Ok(notes)
-    //     }
+        Ok(links)
+    }
 
-    /// Adds a new link to the collection.
+    /// Adds a new link to the specified Collection that your ship has access to.
     /// Returns the index of the link.
     pub fn add_link(
         &mut self,
