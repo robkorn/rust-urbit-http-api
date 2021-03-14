@@ -43,6 +43,8 @@ pub enum UrbitAPIError {
     FailedToInsertGraphNode,
     #[error("The following graph node is not a valid Notebook Note node {0}")]
     InvalidNoteGraphNode(String),
+    #[error("The following graph node is not a valid Collections Link node {0}")]
+    InvalidLinkGraphNode(String),
     #[error("The following graph node index is not a valid Notebook Note node index {0}")]
     InvalidNoteGraphNodeIndex(String),
     #[error("Failed to create a Notebook Note from these nodes {0}")]

@@ -9,6 +9,7 @@ pub mod local_config;
 pub mod subscription;
 pub mod traits;
 
+pub use apps::collections::{Collection, Link};
 pub use apps::harkstore::HarkStore;
 pub use apps::invitestore::InviteStore;
 pub use apps::notebook::Note;
