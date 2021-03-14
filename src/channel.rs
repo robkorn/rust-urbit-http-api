@@ -1,4 +1,5 @@
 use crate::apps::chat::Chat;
+use crate::apps::collections::Collection;
 use crate::apps::notebook::Notebook;
 use crate::error::{Result, UrbitAPIError};
 use crate::graphstore::GraphStore;
@@ -236,5 +237,11 @@ impl Channel {
     /// with a ship's Graph Store.
     pub fn graph_store(&mut self) -> GraphStore {
         GraphStore { channel: self }
+    }
+
+    /// Create a `Collection` struct which exposes an interface for interacting
+    /// with collections on Urbit.
+    pub fn collection(&mut self) -> Collection {
+        Collection { channel: self }
     }
 }
