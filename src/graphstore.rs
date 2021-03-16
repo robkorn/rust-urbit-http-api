@@ -174,6 +174,7 @@ impl<'a> GraphStore<'a> {
     }
 
     /// Create a new graph on the connected Urbit ship that is managed
+    /// (meaning associated with a specific group)
     pub fn create_managed_graph(
         &mut self,
         graph_resource_name: &str,
@@ -218,6 +219,7 @@ impl<'a> GraphStore<'a> {
     }
 
     /// Create a new graph on the connected Urbit ship that is unmanaged
+    /// (meaning not associated with any group)
     pub fn create_unmanaged_graph(
         &mut self,
         graph_resource_name: &str,
