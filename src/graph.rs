@@ -52,6 +52,11 @@ impl Graph {
             graph_text = format!("{}", graph_json["graph-update"]["add-nodes"]["nodes"]);
         }
 
+        // Check if the graph is valid but simply has no nodes
+        if graph_text == "{}" {
+            return Ok(Graph::new(vec![]));
+        }
+
         // Create regex to capture each node json
         let re = Regex::new(r#"\d+":(.+?children":).+?"#)
             .map_err(|_| UrbitAPIError::FailedToCreateGraphFromJSON)?;
