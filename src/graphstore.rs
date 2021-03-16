@@ -3,6 +3,13 @@ use crate::helper::{get_current_da_time, get_current_time, index_dec_to_ud};
 use crate::{Channel, Result, UrbitAPIError};
 use json::{object, JsonValue};
 
+/// The type of module a given graph is.
+pub enum Module {
+    Chat,
+    Notebook,
+    Collection,
+}
+
 /// A struct which exposes Graph Store functionality
 pub struct GraphStore<'a> {
     pub channel: &'a mut Channel,
@@ -164,6 +171,93 @@ impl<'a> GraphStore<'a> {
         }
         // Else return error
         Err(UrbitAPIError::FailedToGetGraph(resource_name.to_string()))
+    }
+
+    /// Create a new graph on the connected Urbit ship that is managed
+    pub fn create_managed_graph(
+        &mut self,
+        graph_resource_name: &str,
+        graph_title: &str,
+        graph_description: &str,
+        graph_module: Module,
+        managed_group_ship: &str,
+        managed_group_name: &str,
+    ) -> Result<()> {
+        let create_req = object! {
+            "create": {
+                "resource": {
+                    "ship": format!("~{}", &self.channel.ship_interface.ship_name),
+                    "name": graph_resource_name
+                },
+                "title": graph_title,
+                "description": graph_description,
+                "associated": {
+                    "group": {
+                        "ship": managed_group_ship,
+                        "name": managed_group_name,
+                    },
+                },
+                "module": module_to_validator_string(&graph_module),
+                "mark": module_to_mark(&graph_module)
+            }
+        };
+
+        let resp = self
+            .channel
+            .ship_interface
+            .spider("graph-view-action", "json", "graph-create", &create_req)
+            .unwrap();
+
+        if resp.status().as_u16() == 200 {
+            Ok(())
+        } else {
+            Err(UrbitAPIError::FailedToCreateGraphInShip(
+                graph_resource_name.to_string(),
+            ))
+        }
+    }
+
+    /// Create a new graph on the connected Urbit ship that is unmanaged
+    pub fn create_unmanaged_graph(
+        &mut self,
+        graph_resource_name: &str,
+        graph_title: &str,
+        graph_description: &str,
+        graph_module: Module,
+    ) -> Result<()> {
+        let create_req = object! {
+            "create": {
+                "resource": {
+                    "ship": format!("~{}", &self.channel.ship_interface.ship_name),
+                    "name": graph_resource_name
+                },
+                "title": graph_title,
+                "description": graph_description,
+                "associated": {
+                    "policy": {
+                        "invite": {
+                            "pending": []
+                        }
+                    }
+                },
+                "module": module_to_validator_string(&graph_module),
+                "mark": module_to_mark(&graph_module)
+            }
+        };
+
+        let resp = self
+            .channel
+            .ship_interface
+            .spider("graph-view-action", "json", "graph-create", &create_req)
+            .unwrap();
+
+        if resp.status().as_u16() == 200 {
+            Ok(())
+        } else {
+            Err(UrbitAPIError::FailedToCreateGraphInShip(
+                graph_resource_name.to_string(),
+            ))
+        }
     }
 
     /// Acquire a graph from Graph Store
@@ -449,5 +543,21 @@ impl<'a> GraphStore<'a> {
         Err(UrbitAPIError::FailedToGetUpdateLog(
             resource_name.to_string(),
         ))
+    }
+}
+
+pub fn module_to_validator_string(module: &Module) -> String {
+    match module {
+        Chat => "graph-validator-chat".to_string(),
+        Notebook => "graph-validator-publish".to_string(),
+        Collection => "graph-validator-link".to_string(),
+    }
+}
+
+pub fn module_to_mark(module: &Module) -> String {
+    match module {
+        Chat => "chat".to_string(),
+        Notebook => "publish".to_string(),
+        Collection => "link".to_string(),
     }
 }

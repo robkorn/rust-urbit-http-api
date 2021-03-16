@@ -16,7 +16,7 @@ pub use apps::notebook::Note;
 pub use channel::Channel;
 pub use error::{Result, UrbitAPIError};
 pub use graph::{Graph, Node, NodeContents};
-pub use graphstore::GraphStore;
+pub use graphstore::Module;
 pub use helper::get_current_da_time;
 pub use interface::ShipInterface;
 pub use local_config::{
