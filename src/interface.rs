@@ -114,6 +114,12 @@ impl ShipInterface {
     }
 }
 
+impl Default for ShipInterface {
+    fn default() -> Self {
+        ShipInterface::new("http://0.0.0.0:8080", "lidlut-tabwed-pillex-ridrup").unwrap()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

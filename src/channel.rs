@@ -82,7 +82,7 @@ impl Channel {
         }
     }
 
-    /// Sends a poke over the channel
+    /// Sends a poke to the Urbit Ship
     pub fn poke(&mut self, app: &str, mark: &str, json: &JsonValue) -> Result<Response> {
         let mut body = json::parse(r#"[]"#).unwrap();
         body[0] = object! {
