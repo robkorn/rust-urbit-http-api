@@ -12,7 +12,7 @@ pub struct ShipInterface {
     pub url: String,
     /// The session auth string header value
     pub session_auth: HeaderValue,
-    /// The ship name
+    /// The ship name (without a leading ~)
     pub ship_name: String,
     /// The Reqwest `Client` to be reused for making requests
     req_client: Client,
@@ -57,6 +57,11 @@ impl ShipInterface {
             ship_name: ship_name.to_string(),
             req_client: client,
         })
+    }
+
+    /// Returns the ship name with a leading `~` (By default ship_name does not have one)
+    pub fn ship_name_with_sig(&self) -> String {
+        format!("~{}", self.ship_name)
     }
 
     /// Create a `Channel` using this `ShipInterface`
