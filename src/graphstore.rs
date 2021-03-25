@@ -8,6 +8,7 @@ pub enum Module {
     Chat,
     Notebook,
     Collection,
+    Null,
 }
 
 /// A struct which exposes Graph Store functionality
@@ -230,7 +231,7 @@ impl<'a> GraphStore<'a> {
         let create_req = object! {
             "create": {
                 "resource": {
-                    "ship": format!("~{}", &self.channel.ship_interface.ship_name),
+                    "ship": self.channel.ship_interface.ship_name_with_sig(),
                     "name": graph_resource_name
                 },
                 "title": graph_title,
@@ -553,6 +554,7 @@ pub fn module_to_validator_string(module: &Module) -> String {
         Chat => "graph-validator-chat".to_string(),
         Notebook => "graph-validator-publish".to_string(),
         Collection => "graph-validator-link".to_string(),
+        Null => "".to_string(),
     }
 }
 
@@ -561,5 +563,6 @@ pub fn module_to_mark(module: &Module) -> String {
         Chat => "chat".to_string(),
         Notebook => "publish".to_string(),
         Collection => "link".to_string(),
+        Null => "".to_string(),
     }
 }
