@@ -82,7 +82,7 @@ impl Channel {
         }
     }
 
-    /// Sends a poke to the Urbit Ship
+    /// Sends a poke over the channel
     pub fn poke(&mut self, app: &str, mark: &str, json: &JsonValue) -> Result<Response> {
         let mut body = json::parse(r#"[]"#).unwrap();
         body[0] = object! {
@@ -96,6 +96,23 @@ impl Channel {
 
         // Make the put request for the poke
         self.ship_interface.send_put_request(&self.url, &body)
+    }
+
+    /// Sends a scry to the ship
+    pub fn scry(&self, app: &str, path: &str, mark: &str) -> Result<Response> {
+        self.ship_interface.scry(app, path, mark)
+    }
+
+    /// Run a thread via spider
+    pub fn spider(
+        &self,
+        input_mark: &str,
+        output_mark: &str,
+        thread_name: &str,
+        body: &JsonValue,
+    ) -> Result<Response> {
+        self.ship_interface
+            .spider(input_mark, output_mark, thread_name, body)
     }
 
     /// Create a new `Subscription` and thus subscribes to events on the
