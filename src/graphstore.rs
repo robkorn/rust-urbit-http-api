@@ -292,16 +292,13 @@ impl<'a> GraphStore<'a> {
             .spider("graph-view-action", "json", "graph-create", &create_req)
             .unwrap();
 
-        println!("{:?}", resp.text());
-        Ok(())
-
-        // if resp.status().as_u16() == 200 {
-        //     Ok(())
-        // } else {
-        //     Err(UrbitAPIError::FailedToCreateGraphInShip(
-        //         graph_resource_name.to_string(),
-        //     ))
-        // }
+        if resp.status().as_u16() == 200 {
+            Ok(())
+        } else {
+            Err(UrbitAPIError::FailedToCreateGraphInShip(
+                graph_resource_name.to_string(),
+            ))
+        }
     }
 
     /// Create a new graph on the connected Urbit ship that is unmanaged
