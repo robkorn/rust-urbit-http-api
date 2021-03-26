@@ -75,9 +75,47 @@ impl<'a> GraphStore<'a> {
             }
         };
 
+        // let resp = (&mut self.channel).poke("graph-store", "graph-update", &prepped_json)?;
         let resp = (&mut self.channel).poke("graph-push-hook", "graph-update", &prepped_json)?;
 
         if resp.status().as_u16() == 204 {
+            Ok(())
+        } else {
+            return Err(UrbitAPIError::FailedToAddNodesToGraphStore(
+                resource_name.to_string(),
+            ));
+        }
+    }
+
+    /// Add node to Graph Store via spider thread
+    pub fn add_node_spider(
+        &mut self,
+        resource_ship: &str,
+        resource_name: &str,
+        node: &Node,
+    ) -> Result<()> {
+        let prepped_json = object! {
+            "add-nodes": {
+                "resource": {
+                    "ship": resource_ship,
+                    "name": resource_name
+                },
+            "nodes": node.to_json()
+            }
+        };
+
+        let resp = self
+            .channel
+            .ship_interface
+            .spider(
+                "graph-update",
+                "graph-view-action",
+                "graph-add-nodes",
+                &prepped_json,
+            )
+            .unwrap();
+
+        if resp.status().as_u16() == 200 {
             Ok(())
         } else {
             return Err(UrbitAPIError::FailedToAddNodesToGraphStore(
@@ -254,6 +292,38 @@ impl<'a> GraphStore<'a> {
             .spider("graph-view-action", "json", "graph-create", &create_req)
             .unwrap();
 
+        println!("{:?}", resp.text());
+        Ok(())
+
+        // if resp.status().as_u16() == 200 {
+        //     Ok(())
+        // } else {
+        //     Err(UrbitAPIError::FailedToCreateGraphInShip(
+        //         graph_resource_name.to_string(),
+        //     ))
+        // }
+    }
+
+    /// Create a new graph on the connected Urbit ship that is unmanaged
+    /// (meaning not associated with any group) and "raw", meaning created
+    /// directly via poking graph-store and not set up to deal with networking
+    pub fn create_unmanaged_graph_raw(&mut self, graph_resource_name: &str) -> Result<()> {
+        // [%add-graph =resource =graph mark=(unit mark)]
+
+        let prepped_json = object! {
+            "add-graph": {
+                "resource": {
+                    "ship": self.channel.ship_interface.ship_name_with_sig(),
+                    "name": graph_resource_name
+                },
+            "graph": "",
+            "mark": "",
+
+            }
+        };
+
+        let resp = (&mut self.channel).poke("graph-store", "graph-update", &prepped_json)?;
+
         if resp.status().as_u16() == 200 {
             Ok(())
         } else {
@@ -313,10 +383,10 @@ impl<'a> GraphStore<'a> {
         Err(UrbitAPIError::FailedToGetGraph(resource_name.to_string()))
     }
 
-    /// Remove graph from Graph Store
-    pub fn remove_graph(&mut self, resource_ship: &str, resource_name: &str) -> Result<()> {
+    /// Delete graph from Graph Store
+    pub fn delete_graph(&mut self, resource_ship: &str, resource_name: &str) -> Result<()> {
         let prepped_json = object! {
-            "remove-graph": {
+            "delete": {
                 "resource": {
                     "ship": resource_ship,
                     "name": resource_name
@@ -324,7 +394,29 @@ impl<'a> GraphStore<'a> {
             }
         };
 
-        let resp = (&mut self.channel).poke("graph-push-hook", "graph-update", &prepped_json)?;
+        let resp = (&mut self.channel).poke("graph-view-action", "graph-update", &prepped_json)?;
+
+        if resp.status().as_u16() == 204 {
+            Ok(())
+        } else {
+            return Err(UrbitAPIError::FailedToRemoveGraphFromGraphStore(
+                resource_name.to_string(),
+            ));
+        }
+    }
+
+    /// Leave graph in Graph Store
+    pub fn leave_graph(&mut self, resource_ship: &str, resource_name: &str) -> Result<()> {
+        let prepped_json = object! {
+            "leave": {
+                "resource": {
+                    "ship": resource_ship,
+                    "name": resource_name
+                }
+            }
+        };
+
+        let resp = (&mut self.channel).poke("graph-view-action", "graph-update", &prepped_json)?;
 
         if resp.status().as_u16() == 204 {
             Ok(())
