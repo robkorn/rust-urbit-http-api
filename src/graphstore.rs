@@ -75,8 +75,8 @@ impl<'a> GraphStore<'a> {
             }
         };
 
-        // let resp = (&mut self.channel).poke("graph-store", "graph-update", &prepped_json)?;
-        let resp = (&mut self.channel).poke("graph-push-hook", "graph-update", &prepped_json)?;
+        let resp = (&mut self.channel).poke("graph-store", "graph-update", &prepped_json)?;
+        // let resp = (&mut self.channel).poke("graph-push-hook", "graph-update", &prepped_json)?;
 
         if resp.status().as_u16() == 204 {
             Ok(())
@@ -301,34 +301,34 @@ impl<'a> GraphStore<'a> {
         }
     }
 
-    /// Create a new graph on the connected Urbit ship that is unmanaged
-    /// (meaning not associated with any group) and "raw", meaning created
-    /// directly via poking graph-store and not set up to deal with networking
-    pub fn create_unmanaged_graph_raw(&mut self, graph_resource_name: &str) -> Result<()> {
-        // [%add-graph =resource =graph mark=(unit mark)]
+    // /// Create a new graph on the connected Urbit ship that is unmanaged
+    // /// (meaning not associated with any group) and "raw", meaning created
+    // /// directly via poking graph-store and not set up to deal with networking
+    // pub fn create_unmanaged_graph_raw(&mut self, graph_resource_name: &str) -> Result<()> {
+    //     // [%add-graph =resource =graph mark=(unit mark)]
 
-        let prepped_json = object! {
-            "add-graph": {
-                "resource": {
-                    "ship": self.channel.ship_interface.ship_name_with_sig(),
-                    "name": graph_resource_name
-                },
-            "graph": "",
-            "mark": "",
+    //     let prepped_json = object! {
+    //         "add-graph": {
+    //             "resource": {
+    //                 "ship": self.channel.ship_interface.ship_name_with_sig(),
+    //                 "name": graph_resource_name
+    //             },
+    //         "graph": "",
+    //         "mark": "",
 
-            }
-        };
+    //         }
+    //     };
 
-        let resp = (&mut self.channel).poke("graph-store", "graph-update", &prepped_json)?;
+    //     let resp = (&mut self.channel).poke("graph-store", "graph-update", &prepped_json)?;
 
-        if resp.status().as_u16() == 200 {
-            Ok(())
-        } else {
-            Err(UrbitAPIError::FailedToCreateGraphInShip(
-                graph_resource_name.to_string(),
-            ))
-        }
-    }
+    //     if resp.status().as_u16() == 200 {
+    //         Ok(())
+    //     } else {
+    //         Err(UrbitAPIError::FailedToCreateGraphInShip(
+    //             graph_resource_name.to_string(),
+    //         ))
+    //     }
+    // }
 
     /// Acquire a graph from Graph Store
     pub fn get_graph(&mut self, resource_ship: &str, resource_name: &str) -> Result<Graph> {
@@ -596,8 +596,6 @@ impl<'a> GraphStore<'a> {
             .ship_interface
             .scry("graph-store", &path, "json")?;
 
-        // println!("body: {}", res.text().unwrap());
-
         // If successfully acquired node json
         if res.status().as_u16() == 200 {
             if let Ok(body) = res.text() {
@@ -640,18 +638,18 @@ impl<'a> GraphStore<'a> {
 
 pub fn module_to_validator_string(module: &Module) -> String {
     match module {
-        Chat => "graph-validator-chat".to_string(),
-        Notebook => "graph-validator-publish".to_string(),
-        Collection => "graph-validator-link".to_string(),
-        Null => "".to_string(),
+        Module::Chat => "graph-validator-chat".to_string(),
+        Module::Notebook => "graph-validator-publish".to_string(),
+        Module::Collection => "graph-validator-link".to_string(),
+        Module::Null => "".to_string(),
     }
 }
 
 pub fn module_to_mark(module: &Module) -> String {
     match module {
-        Chat => "chat".to_string(),
-        Notebook => "publish".to_string(),
-        Collection => "link".to_string(),
-        Null => "".to_string(),
+        Module::Chat => "chat".to_string(),
+        Module::Notebook => "publish".to_string(),
+        Module::Collection => "link".to_string(),
+        Module::Null => "".to_string(),
     }
 }
