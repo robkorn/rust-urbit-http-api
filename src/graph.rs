@@ -86,7 +86,7 @@ impl Graph {
         // Insert all of the childless nodes into the graph
         // under the correct parent.
         for i in 1..childless_nodes.len() {
-            if building_node.is_parent(&childless_nodes[i]) {
+            if building_node.is_ancestor(&childless_nodes[i]) {
                 // Add the child into the deepest depth possible and update building_node
                 building_node = building_node.add_child(&childless_nodes[i]);
             } else {
@@ -158,7 +158,7 @@ impl Node {
     }
 
     /// Check if a self is the direct parent of another `Node`.
-    pub fn is_direct_parent(&self, potential_child: &Node) -> bool {
+    pub fn is_parent(&self, potential_child: &Node) -> bool {
         if let Some(index) = potential_child.parent_index() {
             return self.index == index;
         }
@@ -166,7 +166,7 @@ impl Node {
     }
 
     /// Check if self is a parent (direct or indirect) of another `Node`
-    pub fn is_parent(&self, potential_child: &Node) -> bool {
+    pub fn is_ancestor(&self, potential_child: &Node) -> bool {
         let pc_split_index: Vec<&str> = potential_child.index.split("/").collect();
         let parent_split_index: Vec<&str> = self.index.split("/").collect();
 
@@ -192,10 +192,10 @@ impl Node {
         let mut new_self = self.clone();
         for i in 0..self.children.len() {
             let child = &new_self.children[i];
-            if child.is_direct_parent(new_child) {
+            if child.is_parent(new_child) {
                 new_self.children[i].children.push(new_child.clone());
                 return new_self;
-            } else if child.is_parent(new_child) {
+            } else if child.is_ancestor(new_child) {
                 new_self.children[i] = child.add_child(new_child);
                 return new_self;
             }
