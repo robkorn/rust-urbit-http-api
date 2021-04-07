@@ -75,8 +75,7 @@ impl<'a> GraphStore<'a> {
             }
         };
 
-        let resp = (&mut self.channel).poke("graph-store", "graph-update", &prepped_json)?;
-        // let resp = (&mut self.channel).poke("graph-push-hook", "graph-update", &prepped_json)?;
+        let resp = (&mut self.channel).poke("graph-store", "graph-update-1", &prepped_json)?;
 
         if resp.status().as_u16() == 204 {
             Ok(())
@@ -104,16 +103,12 @@ impl<'a> GraphStore<'a> {
             }
         };
 
-        let resp = self
-            .channel
-            .ship_interface
-            .spider(
-                "graph-update",
-                "graph-view-action",
-                "graph-add-nodes",
-                &prepped_json,
-            )
-            .unwrap();
+        let resp = self.channel.ship_interface.spider(
+            "graph-update",
+            "graph-view-action",
+            "graph-add-nodes",
+            &prepped_json,
+        )?;
 
         if resp.status().as_u16() == 200 {
             Ok(())
@@ -141,7 +136,7 @@ impl<'a> GraphStore<'a> {
             }
         };
 
-        let resp = (&mut self.channel).poke("graph-push-hook", "graph-update", &prepped_json)?;
+        let resp = (&mut self.channel).poke("graph-push-hook", "graph-update-1", &prepped_json)?;
 
         if resp.status().as_u16() == 204 {
             Ok(())
@@ -319,7 +314,7 @@ impl<'a> GraphStore<'a> {
     //         }
     //     };
 
-    //     let resp = (&mut self.channel).poke("graph-store", "graph-update", &prepped_json)?;
+    //     let resp = (&mut self.channel).poke("graph-store", "graph-update-1", &prepped_json)?;
 
     //     if resp.status().as_u16() == 200 {
     //         Ok(())
@@ -391,7 +386,8 @@ impl<'a> GraphStore<'a> {
             }
         };
 
-        let resp = (&mut self.channel).poke("graph-view-action", "graph-update", &prepped_json)?;
+        let resp =
+            (&mut self.channel).poke("graph-view-action", "graph-update-1", &prepped_json)?;
 
         if resp.status().as_u16() == 204 {
             Ok(())
@@ -413,7 +409,8 @@ impl<'a> GraphStore<'a> {
             }
         };
 
-        let resp = (&mut self.channel).poke("graph-view-action", "graph-update", &prepped_json)?;
+        let resp =
+            (&mut self.channel).poke("graph-view-action", "graph-update-1", &prepped_json)?;
 
         if resp.status().as_u16() == 204 {
             Ok(())
@@ -472,7 +469,7 @@ impl<'a> GraphStore<'a> {
                 }
         };
 
-        let resp = (&mut self.channel).poke("graph-push-hook", "graph-update", &prepped_json)?;
+        let resp = (&mut self.channel).poke("graph-push-hook", "graph-update-1", &prepped_json)?;
 
         if resp.status().as_u16() == 204 {
             Ok(())
@@ -498,7 +495,7 @@ impl<'a> GraphStore<'a> {
                 }
         };
 
-        let resp = (&mut self.channel).poke("graph-push-hook", "graph-update", &prepped_json)?;
+        let resp = (&mut self.channel).poke("graph-push-hook", "graph-update-1", &prepped_json)?;
 
         if resp.status().as_u16() == 204 {
             Ok(())
