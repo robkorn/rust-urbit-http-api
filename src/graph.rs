@@ -17,7 +17,7 @@ pub struct Node {
     pub index: String,
     pub author: String,
     pub time_sent: u64,
-    pub signatures: Vec<String>,
+    pub signatures: Vec<Signature>,
     pub contents: NodeContents,
     pub hash: Option<String>,
     pub children: Vec<Node>,
@@ -27,6 +27,14 @@ pub struct Node {
 #[derive(Debug, Clone)]
 pub struct NodeContents {
     pub content_list: Vec<JsonValue>,
+}
+
+/// Struct which represents a signature inside of a node
+#[derive(Debug, Clone)]
+pub struct Signature {
+    signature: String,
+    life: u64,
+    ship: String,
 }
 
 impl Graph {
@@ -122,7 +130,7 @@ impl Node {
         index: String,
         author: String,
         time_sent: u64,
-        signatures: Vec<String>,
+        signatures: Vec<Signature>,
         contents: NodeContents,
         hash: Option<String>,
     ) -> Node {
@@ -265,6 +273,7 @@ impl Node {
         // Process all of the json fields
         let children = json["children"].clone();
         let post_json = json["post"].clone();
+
         let index = post_json["index"]
             .as_str()
             .ok_or(UrbitAPIError::FailedToCreateGraphNodeFromJSON)?;
@@ -275,17 +284,6 @@ impl Node {
             .as_u64()
             .ok_or(UrbitAPIError::FailedToCreateGraphNodeFromJSON)?;
 
-        // Wrap hash in an Option for null case
-        let hash = match post_json["hash"].is_null() {
-            true => None,
-            false => Some(
-                post_json["hash"]
-                    .as_str()
-                    .ok_or(UrbitAPIError::FailedToCreateGraphNodeFromJSON)?
-                    .to_string(),
-            ),
-        };
-
         // Convert array JsonValue to vector for contents
         let mut json_contents = vec![];
         for content in post_json["contents"].members() {
@@ -293,15 +291,35 @@ impl Node {
         }
         let contents = NodeContents::from_json(json_contents);
 
-        // Convert array JsonValue to vector for signatures
-        let mut signatures = vec![];
-        for signature in post_json["signatures"].members() {
-            signatures.push(
-                signature
+        // Wrap hash in an Option for null case
+        let hash = match post_json["contents"]["hash"].is_null() {
+            true => None,
+            false => Some(
+                post_json["contents"]["hash"]
                     .as_str()
                     .ok_or(UrbitAPIError::FailedToCreateGraphNodeFromJSON)?
                     .to_string(),
-            );
+            ),
+        };
+
+        // Convert array JsonValue to vector of Signatures
+        let mut signatures = vec![];
+        for signature in post_json["signatures"].members() {
+            let sig = Signature {
+                signature: signature["signature"]
+                    .as_str()
+                    .ok_or(UrbitAPIError::FailedToCreateGraphNodeFromJSON)?
+                    .to_string(),
+                life: signature["life"]
+                    .as_u64()
+                    .ok_or(UrbitAPIError::FailedToCreateGraphNodeFromJSON)?,
+                ship: signature["ship"]
+                    .as_str()
+                    .ok_or(UrbitAPIError::FailedToCreateGraphNodeFromJSON)?
+                    .to_string(),
+            };
+
+            signatures.push(sig);
         }
 
         // children
