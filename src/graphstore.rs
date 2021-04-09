@@ -75,7 +75,7 @@ impl<'a> GraphStore<'a> {
             }
         };
 
-        let resp = (&mut self.channel).poke("graph-store", "graph-update-1", &prepped_json)?;
+        let resp = (&mut self.channel).poke("graph-push-hook", "graph-update-1", &prepped_json)?;
 
         if resp.status().as_u16() == 204 {
             Ok(())
