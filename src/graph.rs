@@ -79,6 +79,11 @@ impl Graph {
                 + r#"null}"#;
             let json = json::parse(&node_string)
                 .map_err(|_| UrbitAPIError::FailedToCreateGraphNodeFromJSON)?;
+            // Skipping nodes which do not have a proper `post` value
+            if json["post"].is_string() {
+                continue;
+            }
+            // Finish processing node
             let processed_node = Node::from_json(&json)?;
             childless_nodes.push(processed_node);
         }
