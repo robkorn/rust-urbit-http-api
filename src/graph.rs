@@ -84,8 +84,11 @@ impl Graph {
                 continue;
             }
             // Finish processing node
-            let processed_node = Node::from_json(&json)?;
-            childless_nodes.push(processed_node);
+            let processed_node_opt = Node::from_json(&json);
+            if processed_node_opt.is_err() {
+                println!("Failed to process graph node: \n{}", node_string);
+            }
+            childless_nodes.push(processed_node_opt?);
         }
 
         // Check if failed to extract nodes from json via Regex
